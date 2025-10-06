@@ -12,7 +12,7 @@ import base64
 from phe import paillier
 from phe import util
 
-
+import tenseal as ts
 
 from ast import literal_eval
 
@@ -22,15 +22,36 @@ from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair
 n = 32
 m = 32
 
-pub_key,priv_key = paillier.generate_paillier_keypair(n_length=2048)
+# CKKS parameters
+POLY_MODULUS_DEGREE = 8192   # typical secure choice
+COEFF_MOD_BIT_SIZES = [60, 40, 40, 60]  # coefficient modulus bit sizes
 
+# Create TenSEAL CKKS context
+ctx = ts.context(
+    ts.SCHEME_TYPE.CKKS,
+    poly_modulus_degree=POLY_MODULUS_DEGREE,
+    coeff_mod_bit_sizes=COEFF_MOD_BIT_SIZES
+)
+ctx.generate_galois_keys()   # if you need rotations
+ctx.generate_relin_keys()    # if you need multiplications
 
+# ---- Save private context (with secret key) ----
+priv_ctx_bytes = ctx.serialize(save_secret_key=True)
+
+# ---- Save public context (no secret key) ----
+pub_ctx_bytes = ctx.serialize(
+    save_public_key=True,
+    save_secret_key=False,
+    save_galois_keys=True,
+    save_relin_keys=True
+)
+
+# ---- Store in keys.pkl like Paillier ----
 with open("keys.pkl", "wb") as f:
     pickle.dump({
-        "public_key": pub_key,
-        "private_key": priv_key
-    }, f)
-
+        "public_context": pub_ctx_bytes,
+        "private_context": priv_ctx_bytes
+    }, f
 
 group = PairingGroup('SS512')
 order = group.order()
