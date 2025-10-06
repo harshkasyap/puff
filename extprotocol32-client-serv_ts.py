@@ -514,14 +514,15 @@ for j in range(m):
 EM = []
 for j in range(m):
     # Encrypt entire row as one CKKS vector
-    enc_vec = ts.ckks_vector(ctx, TT[j])
+    enc_vec = ts.ckks_tensor(ctx, TT[j], None, True)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
-    EM.append(enc_vec)
+    EM.append(base64.b64encode(enc_vec.serialize()))
 
 print("Server encrypted model for storing")
 
 EMT = [] #containts encrypted models based on T
+'''
 for j in range(m):
     emtt = []
     for i in range(n):
@@ -533,8 +534,16 @@ for j in range(m):
         #print(emtt[i])
     EMT.append(emtt)
 #encryptrd model EMT  is stored with the server
+'''
+for j in range(m):
+    # Encrypt entire row as one CKKS vector
+    enc_vec = ts.ckks_tensor(ctx, T[j], None, True)
+
+    # Serialize ciphertext to bytes (so it can be stored/transmitted)
+    EMT.append(base64.b64encode(enc_vec.serialize()))
 
 print("First ciphertext")
+'''
 print(EMT[0][0][0])
 reconstructed_ciphertext = paillier.EncryptedNumber(pub_key, EMT[0][0][0], EMT[0][0][1])
 
@@ -544,7 +553,7 @@ print(reconstructed_ciphertext)
 
 print("Decryption")
 print(priv_key.decrypt(reconstructed_ciphertext))
-
+'''
 print("---------------------------")
 
 
