@@ -34,6 +34,7 @@ ctx = ts.context(
 )
 ctx.generate_galois_keys()   # if you need rotations
 ctx.generate_relin_keys()    # if you need multiplications
+ctx.global_scale = 2**40
 
 # ---- Save private context (with secret key) ----
 priv_ctx_bytes = ctx.serialize(save_secret_key=True)
