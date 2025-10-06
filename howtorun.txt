@@ -1,0 +1,23 @@
+
+
+Setup:
+python extprotocol32-client-serv.py
+    # This will create pk, sk, authenticators and corresponding files to be shared with client and server
+
+
+python challenge_client.py
+    # This will start client program that initiates the authentication: sends challenge to PUF and Server
+
+
+python challenge_puf.py 
+    # This will run PUF program which first receives challenge from client and sends response back to client
+
+
+
+python challenge_server.py
+    # This will run server program that first receives challenge from client and then sends encrypted response to client along with the proof of correctness via linear authenticators
+
+
+
+
+
