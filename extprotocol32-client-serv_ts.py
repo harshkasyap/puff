@@ -499,7 +499,7 @@ print(sum2)
 
 
 
-
+'''
 EM = [] #containts encrypted models
 for j in range(m):
     emt = []
@@ -508,7 +508,15 @@ for j in range(m):
         emt.append(pub_key.encrypt(TT[j][i]))
     EM.append(emt)
 #encryptrd model EM is NOT stored with the server
+'''
 
+EM = []
+for j in range(m):
+    # Encrypt entire row as one CKKS vector
+    enc_vec = ts.ckks_vector(ctx, TT[j])
+
+    # Serialize ciphertext to bytes (so it can be stored/transmitted)
+    EM.append(enc_vec)
 
 print("Server encrypted model for storing")
 
