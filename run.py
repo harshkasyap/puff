@@ -8,7 +8,7 @@ runtimes = []
 #PYTHON_PATH = "/Users/sumanta/miniconda3/envs/py310/bin/python"
 
 
-PYTHON_PATH = "/opt/anaconda3/envs/py39/bin/python"
+PYTHON_PATH = "/home/harsh_1921cs01/anaconda3/envs/charm39/bin/python"
 #PYTHON_PATH="/home/ss25611/py39/bin/python3"
 
 for i in range(REPEATS):
