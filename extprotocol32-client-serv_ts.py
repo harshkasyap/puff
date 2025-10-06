@@ -394,6 +394,7 @@ for j in range(m):
        # print(TT[i], z, y)
     T.append(Tt)
 
+print("First encoded vec", T[0])
 
 
 
