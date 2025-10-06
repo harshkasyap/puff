@@ -47,11 +47,11 @@ pub_ctx_bytes = ctx.serialize(
 )
 
 # ---- Store in keys.pkl like Paillier ----
-with open("keys.pkl", "wb") as f:
+with open("keys_ts.pkl", "wb") as f:
     pickle.dump({
         "public_context": pub_ctx_bytes,
         "private_context": priv_ctx_bytes
-    }, f
+    }, f)
 
 group = PairingGroup('SS512')
 order = group.order()
