@@ -24,14 +24,23 @@ m = 32
 
 # CKKS parameters
 POLY_MODULUS_DEGREE = 8192   # typical secure choice
-COEFF_MOD_BIT_SIZES = [60, 40, 40, 60]  # coefficient modulus bit sizes
+COEFF_MOD_BIT_SIZES = [60, 40, 40, 60]  # coefficient modulus bit sizes, used for ckks
+PLAIN_MODULUS = 786433         # must be a prime number; can also use 2**20 or 65537, used for bfv
 
 # Create TenSEAL CKKS context
-ctx = ts.context(
-    ts.SCHEME_TYPE.BFV,
+ctx1 = ts.context(
+    ts.SCHEME_TYPE.ckks,
     poly_modulus_degree=POLY_MODULUS_DEGREE,
     coeff_mod_bit_sizes=COEFF_MOD_BIT_SIZES
 )
+
+# Create TenSEAL BFV context
+ctx = ts.context(
+    ts.SCHEME_TYPE.bfv,
+    poly_modulus_degree=POLY_MODULUS_DEGREE,
+    plain_modulus=PLAIN_MODULUS
+)
+
 ctx.generate_galois_keys()   # if you need rotations
 ctx.generate_relin_keys()    # if you need multiplications
 ctx.global_scale = 2**40
