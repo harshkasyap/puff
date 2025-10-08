@@ -522,6 +522,7 @@ for j in range(m):
 '''
 
 EM = []
+print ("First row to encrypt", TT[0])
 for j in range(m):
     # Encrypt entire row as one CKKS vector
     enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(TT[j]), True)
