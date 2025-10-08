@@ -83,6 +83,7 @@ tao = 2 ** 40
 if p - tao < 0:
     print('p < tao')
 
+'''
 def encode(x ):
     if (x > 0):
         return round( x*tao )
@@ -97,8 +98,20 @@ def decode(x):
     else:
         #print("decode 2nd", x/tao )
         return x/tao
+'''
 
 
+def encode(x):
+    if x > 0:
+        return int((x * tao) % p)
+    else:
+        return int((p - (-x * tao)) % p)
+
+def decode(x):
+    if x >= p/2:
+        return (x - p) / tao
+    else:
+        return x / tao
 
 
 
