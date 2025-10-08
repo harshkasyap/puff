@@ -524,7 +524,7 @@ for j in range(m):
 EM = []
 for j in range(m):
     # Encrypt entire row as one CKKS vector
-    enc_vec = ts.bfv_tensor(ctx, TT[j], None, True)
+    enc_vec = ts.bfv_tensor(ctx, TT[j], True)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
     EM.append(base64.b64encode(enc_vec.serialize()))
@@ -547,7 +547,7 @@ for j in range(m):
 '''
 for j in range(m):
     # Encrypt entire row as one CKKS vector
-    enc_vec = ts.bfv_tensor(ctx, T[j], None, True)
+    enc_vec = ts.bfv_tensor(ctx, T[j], True)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
     EMT.append(base64.b64encode(enc_vec.serialize()))
