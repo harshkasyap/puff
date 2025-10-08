@@ -521,6 +521,7 @@ for j in range(m):
 #encryptrd model EM is NOT stored with the server
 '''
 
+'''
 EM = []
 print ("First row to encrypt", TT[0])
 for j in range(m):
@@ -529,7 +530,7 @@ for j in range(m):
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
     EM.append(base64.b64encode(enc_vec.serialize()))
-
+'''
 print("Server encrypted model for storing")
 
 EMT = [] #containts encrypted models based on T
