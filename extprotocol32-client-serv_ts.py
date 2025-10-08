@@ -691,6 +691,7 @@ t1 = time.time()
 # m = 142 paper q = m, paper t = n
 #delta = [] # encrypted response
 deltat = [] # encrypted response based on EMT
+'''
 for j in range(m):
     #c = EM[j][0]*PC[0]
     ct = EMT[j][0]*bh[0]
@@ -701,7 +702,11 @@ for j in range(m):
         #ct = ct + EMT[j][i]*PC[i]
     #delta.append(c)
     deltat.append(ct)
-
+'''
+for j in range(m):
+    ct = EMT[j] * bh       # elementwise multiplication (encrypted × plaintext)
+    sum_ct = ct.sum()      # homomorphic sum across all slots
+    deltat.append(sum_ct)
 
 
 
