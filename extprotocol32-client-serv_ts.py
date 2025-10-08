@@ -29,14 +29,14 @@ PLAIN_MODULUS = 786433         # must be a prime number; can also use 2**20 or 6
 
 # Create TenSEAL CKKS context
 ctx1 = ts.context(
-    ts.SCHEME_TYPE.ckks,
+    ts.SCHEME_TYPE.CKKS,
     poly_modulus_degree=POLY_MODULUS_DEGREE,
     coeff_mod_bit_sizes=COEFF_MOD_BIT_SIZES
 )
 
 # Create TenSEAL BFV context
 ctx = ts.context(
-    ts.SCHEME_TYPE.bfv,
+    ts.SCHEME_TYPE.BFV,
     poly_modulus_degree=POLY_MODULUS_DEGREE,
     plain_modulus=PLAIN_MODULUS
 )
