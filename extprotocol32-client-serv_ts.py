@@ -565,7 +565,8 @@ for j in range(m):
     enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(T[j]), True)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
-    EMT.append(base64.b64encode(enc_vec.serialize()))
+    EMT.append(enc_vec)    
+    # EMT.append(base64.b64encode(enc_vec.serialize()))
 
 print("First ciphertext")
 '''
@@ -593,16 +594,17 @@ print("---------------------------")
 #print(sum1)
 
 
-
+'''
 with open('ctext.pkl', 'wb') as file:
     pickle.dump(EMT, file)
 
 with open('ctext.pkl', 'rb') as file:
     loaded_EMT = pickle.load(file)
-
+    
 
 if(EMT != loaded_EMT):
     print("mismatch")
+'''
 
 #print("Total size: encryption + authentication", (sum1+sum2)) 
 
