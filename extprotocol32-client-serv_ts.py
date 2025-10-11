@@ -675,11 +675,16 @@ for j in range(m):
 #     else:
 #         bh.append(PC[i])
 
-
+'''
 bh = [] #bh contains encoded (reformatted) challenges
 
 for i in range(n):
     bh.append(PC[i]%p)
+'''
+
+bc = PC
+t = ctx.plain_modulus()
+bh = [(x % t) for x in PC]
 
 #print("bh[0]",bh[0], bc[1])
  
