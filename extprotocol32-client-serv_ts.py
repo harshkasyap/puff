@@ -99,7 +99,7 @@ def decode(x):
         #print("decode 2nd", x/tao )
         return x/tao
 '''
-
+'''
 
 def encode(x):
     if x > 0:
@@ -112,7 +112,23 @@ def decode(x):
         return (x - p) / tao
     else:
         return x / tao
+'''
 
+
+PLAIN_MODULUS = 786433
+tao = 2**20   # scale factor. choose so that |round(x*tao)| < PLAIN_MODULUS/2
+
+def encode(x):
+    s = int(round(x * tao))
+    return s % PLAIN_MODULUS
+
+def decode(v):
+    # v is in [0, PLAIN_MODULUS-1]; map to signed
+    if v >= PLAIN_MODULUS // 2:
+        v_signed = v - PLAIN_MODULUS
+    else:
+        v_signed = v
+    return v_signed / tao
 
 
 
