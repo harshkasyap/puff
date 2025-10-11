@@ -449,7 +449,8 @@ for j in range(n):
     if j == 0:
         print("SIG ", sig)
     #print("sig", sig)
-    SS.append(base64.b64encode(group.serialize(sig)).decode()) # encode to base64 after serialization
+    SS.append(sig)
+    #SS.append(base64.b64encode(group.serialize(sig)).decode()) # encode to base64 after serialization
 
     
 
