@@ -737,7 +737,7 @@ for i in range(1,n):
 t2 = time.time()
 print("server compute time", t2-t1)
 
-ST.append(t2-t1)
+#ST.append(t2-t1)
 
 #verification 
     
