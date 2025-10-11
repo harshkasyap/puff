@@ -684,7 +684,7 @@ for i in range(n):
 
 bc = PC
 PLAIN_MODULUS = 786433
-bh = [(x % t) for x in PC]
+bh = [(x % PLAIN_MODULUS) for x in PC]
 
 #print("bh[0]",bh[0], bc[1])
  
