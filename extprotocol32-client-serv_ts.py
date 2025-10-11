@@ -767,6 +767,8 @@ for i in range(m):
     decrypted_vec = deltat[i].decrypt()   # returns Python list of integers
     DELTAT.append(decrypted_vec)
 
+print(DELTAT[0])
+
 #print(DELTA)
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
 # exit(0)
