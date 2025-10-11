@@ -756,10 +756,16 @@ t3 = time.time()
 #         ns1 = ns1 + PC[j]*T[i][j]
 #     print("plaintext sum", ns, decode(ns1 % p) )
 
+'''
 DELTAT = [] # decryption of server's respponse based on T
 for i in range(m):
     DELTAT.append(priv_key.decrypt(deltat[i]))
+'''
 
+DELTAT = []
+for i in range(m):
+    decrypted_vec = deltat[i].decrypt()   # returns Python list of integers
+    DELTAT.append(decrypted_vec)
 
 #print(DELTA)
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
