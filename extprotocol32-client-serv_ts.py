@@ -114,8 +114,6 @@ def decode(x):
         return x / tao
 '''
 
-
-PLAIN_MODULUS = 786433
 tao = 2**20   # scale factor. choose so that |round(x*tao)| < PLAIN_MODULUS/2
 
 def encode(x):
@@ -782,6 +780,11 @@ DELTAT = []
 for i in range(m):
     decrypted_vec = deltat[i].decrypt().tolist()       # returns Python list of integers
     print(decrypted_vec)
+     if val >= PLAIN_MODULUS // 2:
+        val_signed = decrypted_vec - PLAIN_MODULUS
+
+    # Now reduce modulo group order to make a valid exponent
+    decrypted_vec = val_signed % group.order()
     DELTAT.append(decrypted_vec)
 
 #print(DELTA)
