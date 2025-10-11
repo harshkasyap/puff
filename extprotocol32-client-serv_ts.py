@@ -703,9 +703,10 @@ for j in range(m):
     #delta.append(c)
     deltat.append(ct)
 '''
-bh_plain = ts.plain_tensor(bh)
+
+bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 for j in range(m):
-    ct = EMT[j] * bh_plain       # elementwise multiplication (encrypted × plaintext)
+    ct = EMT[j] * bh_enc       # elementwise multiplication (encrypted × plaintext)
     sum_ct = ct.sum()      # homomorphic sum across all slots
     deltat.append(sum_ct)
 
