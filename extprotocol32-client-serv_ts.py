@@ -683,7 +683,7 @@ for i in range(n):
 '''
 
 bc = PC
-t = ctx.plain_modulus()
+PLAIN_MODULUS = 786433
 bh = [(x % t) for x in PC]
 
 #print("bh[0]",bh[0], bc[1])
