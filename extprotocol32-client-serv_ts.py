@@ -780,7 +780,7 @@ DELTAT = []
 for i in range(m):
     decrypted_vec = deltat[i].decrypt().tolist()       # returns Python list of integers
     print(decrypted_vec)
-     if val >= PLAIN_MODULUS // 2:
+    if val >= PLAIN_MODULUS // 2:
         val_signed = decrypted_vec - PLAIN_MODULUS
 
     # Now reduce modulo group order to make a valid exponent
