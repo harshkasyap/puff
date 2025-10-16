@@ -19,6 +19,13 @@ from ast import literal_eval
 
 from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair 
 
+
+def writeInEncFile(enc_vec, filename):
+    ser_vec = base64.b64encode(enc_vec)
+
+    with open(filename, 'wb') as f:
+        f.write(ser_vec)
+
 n = 32
 m = 32
 
@@ -582,6 +589,7 @@ for j in range(m):
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
     EMT.append(enc_vec)    
+    writeInEncFile(enc_vec, "enc_vec"+i)
     # EMT.append(base64.b64encode(enc_vec.serialize()))
 
 print("First ciphertext")
