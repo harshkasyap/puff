@@ -589,7 +589,7 @@ for j in range(m):
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
     EMT.append(enc_vec)    
-    writeInEncFile(enc_vec, "enc_vec"+i)
+    writeInEncFile(enc_vec, "enc_vec"+str(i))
     # EMT.append(base64.b64encode(enc_vec.serialize()))
 
 print("First ciphertext")
