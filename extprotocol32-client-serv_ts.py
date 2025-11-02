@@ -84,12 +84,41 @@ p = 1381819329670992382493016885514578963637936154479   ##p is a 160-bit prime
 
 print(p)
 
+tao = 2 ** 90
+
+
+if p - tao < 0:
+    print('p < tao')
+
+def encode(x ):
+    if (x > 0):
+        return round( x*tao )
+    else:
+        return (p -round( (-1)*x*tao ))
+
+
+def decode(x):
+    if x >= p/2:
+        #print("decode 1st", (x - p)/tao )
+        return (x - p)/tao
+    else:
+        #print("decode 2nd", x/tao )
+        return x/tao
+
+'''
+#p = util.getprimeover(160) #p is a 160-bit prime
+
+p = 1381819329670992382493016885514578963637936154479   ##p is a 160-bit prime
+
+print(p)
+
 tao = 2 ** 40
 
 
 if p - tao < 0:
     print('p < tao')
 
+'''
 '''
 def encode(x ):
     if (x > 0):
@@ -120,7 +149,7 @@ def decode(x):
     else:
         return x / tao
 '''
-
+'''
 tao = 2**20   # scale factor. choose so that |round(x*tao)| < PLAIN_MODULUS/2
 
 def encode(x):
@@ -135,7 +164,7 @@ def decode(v):
         v_signed = v
     return v_signed / tao
 
-
+'''
 
 
 
@@ -701,17 +730,17 @@ for j in range(m):
 #     else:
 #         bh.append(PC[i])
 
-'''
+
 bh = [] #bh contains encoded (reformatted) challenges
 
 for i in range(n):
     bh.append(PC[i]%p)
-'''
 
+'''
 bc = PC
 PLAIN_MODULUS = 786433
 bh = [(x % PLAIN_MODULUS) for x in PC]
-
+'''
 #print("bh[0]",bh[0], bc[1])
  
     
