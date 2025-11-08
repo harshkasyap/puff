@@ -737,11 +737,17 @@ for j in range(m):
 '''
 for j in range(m):
     # Encrypt entire row as one CKKS vector
-    enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(T[j]), True)
+
+    residues = [T[j] % mod for mod in moduli]
+    
+    enc_vecs = []
+    for i, context in enumerate(contexts):
+        enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(residues[i]), True)
+        enc_vecs.append(enc_vec)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
-    EMT.append(enc_vec)    
-    writeInEncFile(enc_vec.serialize(), "enc_vec"+str(i))
+    EMT.append(enc_vecs)    
+    #writeInEncFile(enc_vec.serialize(), "enc_vec"+str(i))
     # EMT.append(base64.b64encode(enc_vec.serialize()))
 
 print("First ciphertext")
