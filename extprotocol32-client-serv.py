@@ -735,7 +735,7 @@ if (lhs != rhs ):
 #if(lhs == rhs):
     #print("lhs rhs match")
 
-
+print("Linear authenticator match")
 
 
 R_f = []
