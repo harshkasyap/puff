@@ -271,7 +271,7 @@ if not ok:
 
 M = prod(moduli)
 print("Total modulus product M bitlength:", M.bit_length())
-if M <= expected:
+if M <= p:
     raise RuntimeError("Chosen moduli product not large enough!")
 
 
