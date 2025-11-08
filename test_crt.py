@@ -289,7 +289,7 @@ for i, m in enumerate(moduli):
         print("Error creating TenSEAL context for modulus:", m)
         raise
 
-    contexts.append[context]
+    contexts.append(context)
 
 TT =  [
 [
