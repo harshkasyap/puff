@@ -262,12 +262,14 @@ def decode(v):
     return v_signed / tao
 
 '''
-
+'''
 moduli = choose_moduli_for_target(p, 8192, 40, 7)
 ok, bad = moduli_pairwise_coprime(moduli)
 if not ok:
     i,j,g = bad
     raise RuntimeError(f"Selected moduli not pairwise coprime: moduli[{i}],moduli[{j}] share gcd {g}")
+'''
+moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737]
 
 M = prod(moduli)
 print("Total modulus product M bitlength:", M.bit_length())
@@ -280,7 +282,7 @@ contexts = []
 for i, m in enumerate(moduli):
     print(f"\n[CTX {i+1}/{len(moduli)}] modulus bitlen={m.bit_length()}")
     try:
-        context = ts.context(ts.SCHEME_TYPE.BFV, poly_modulus_degree=poly_modulus_degree, plain_modulus=m)
+        context = ts.context(ts.SCHEME_TYPE.BFV, poly_modulus_degree=8192, plain_modulus=m)
         context.generate_galois_keys()
         context.generate_relin_keys()
     except Exception as e:
