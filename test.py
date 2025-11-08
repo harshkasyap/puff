@@ -816,12 +816,8 @@ for i in range(m):
 DELTAT = []
 for i in range(m):
     decrypted_vec = deltat[i].decrypt().tolist()       # returns Python list of integers
+    decrypted_vec = encode(decrypted_vec)
     print(decrypted_vec)
-    if decrypted_vec >= PLAIN_MODULUS // 2:
-        decrypted_vec = decrypted_vec - PLAIN_MODULUS
-
-    # Now reduce modulo group order to make a valid exponent
-    decrypted_vec = decrypted_vec % group.order()
     DELTAT.append(decrypted_vec)
 
 #print(DELTA)
