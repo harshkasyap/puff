@@ -263,7 +263,7 @@ def decode(v):
 
 '''
 
-moduli = choose_moduli_for_target(p, poly_modulus_degree, per_modulus_bits, max_moduli)
+moduli = choose_moduli_for_target(p, 8192, 40, 7)
 ok, bad = moduli_pairwise_coprime(moduli)
 if not ok:
     i,j,g = bad
