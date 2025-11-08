@@ -279,14 +279,14 @@ if M <= p:
 print("moduli", moduli)
 # process each modulus
 contexts = []
-for i, m in enumerate(moduli):
-    print(f"\n[CTX {i+1}/{len(moduli)}] modulus bitlen={m.bit_length()}")
+for i, mod in enumerate(moduli):
+    print(f"\n[CTX {i+1}/{len(moduli)}] modulus bitlen={mod.bit_length()}")
     try:
-        context = ts.context(ts.SCHEME_TYPE.BFV, poly_modulus_degree=8192, plain_modulus=m)
+        context = ts.context(ts.SCHEME_TYPE.BFV, poly_modulus_degree=8192, plain_modulus=mod)
         context.generate_galois_keys()
         context.generate_relin_keys()
     except Exception as e:
-        print("Error creating TenSEAL context for modulus:", m)
+        print("Error creating TenSEAL context for modulus:", mod)
         raise
 
     contexts.append(context)
