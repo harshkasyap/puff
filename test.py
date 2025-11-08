@@ -816,7 +816,8 @@ for i in range(m):
 DELTAT = []
 for i in range(m):
     decrypted_vec = deltat[i].decrypt().tolist()       # returns Python list of integers
-    decrypted_vec = encode(decrypted_vec)
+    decrypted_vec = encode(decrypted_vec) 
+    decrypted_vec = round(decrypted_vec*tao)
     print(decrypted_vec)
     DELTAT.append(decrypted_vec)
 
