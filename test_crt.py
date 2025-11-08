@@ -274,7 +274,19 @@ print("Total modulus product M bitlength:", M.bit_length())
 if M <= p:
     raise RuntimeError("Chosen moduli product not large enough!")
 
+# process each modulus
+contexts = []
+for i, m in enumerate(moduli):
+    print(f"\n[CTX {i+1}/{len(moduli)}] modulus bitlen={m.bit_length()}")
+    try:
+        context = ts.context(ts.SCHEME_TYPE.BFV, poly_modulus_degree=poly_modulus_degree, plain_modulus=m)
+        context.generate_galois_keys()
+        context.generate_relin_keys()
+    except Exception as e:
+        print("Error creating TenSEAL context for modulus:", m)
+        raise
 
+    contexts.append[context]
 
 TT =  [
 [
