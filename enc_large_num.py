@@ -8,15 +8,15 @@ context = ts.context(
 context.generate_galois_keys()
 context.generate_relin_keys()
 
-number = 12345678901234567890
+# Step 2: The large number to encrypt
+number = 1234567890123
 print("Original number:", number)
 
-# Step 3: Encrypt using BFV (scalar encoding)
-enc_num = ts.bfv_encoder(context).encode_int(number)
-enc_val = ts.bfv_vector(context, [number])  # vector form for ops
-print("Encrypted value created.")
+# Step 3: Encrypt (wrap inside a vector)
+enc_val = ts.bfv_vector(context, [number])
+print("Encrypted successfully.")
 
-# Step 4: Multiply by a plaintext scalar
+# Step 4: Multiply with a plaintext number
 multiplier = 12
 print("Multiplier:", multiplier)
 enc_product = enc_val * multiplier
