@@ -274,6 +274,7 @@ print("Total modulus product M bitlength:", M.bit_length())
 if M <= p:
     raise RuntimeError("Chosen moduli product not large enough!")
 
+print("moduli", moduli)
 # process each modulus
 contexts = []
 for i, m in enumerate(moduli):
