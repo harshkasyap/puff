@@ -734,7 +734,7 @@ for j in range(m):
 bh = [] #bh contains encoded (reformatted) challenges
 
 for i in range(n):
-    bh.append(PC[i]%p)
+    bh.append(PC[i]) #%p)
 
 '''
 bc = PC
@@ -764,7 +764,7 @@ for j in range(m):
     deltat.append(ct)
 '''
 
-bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
+bh_enc = ts.ckks_tensor(ctx, ts.plain_tensor(bh), None, True)
 for j in range(m):
     ct = EMT[j] * bh_enc       # elementwise multiplication (encrypted × plaintext)
     sum_ct = ct.sum()      # homomorphic sum across all slots
