@@ -906,7 +906,7 @@ bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 
 bh_residues = []                   # holds residues for this row across all moduli
 for mod in moduli:                  # for each modulus
-    mod_res = [((pc % order) % mod) for pc in PC]   # residue vector for this modulus
+    mod_res = [x % mod for x in bh]   # residue vector for this modulus
     bh_residues.append(mod_res)
 
 transposed_bh_residues = [list(x) for x in zip(*bh_residues)]
@@ -926,19 +926,20 @@ for j in range(m):
 
 
 #SIG = SS[0] ** PC[0] # combined signature
-'''
+
 SIG = SS[0] ** bh[0] # combined signature
 for i in range(1,n):
     #sigv =  (SS[i] ** PC[i])
     sigv =  (SS[i] ** bh[i])
     SIG = SIG*sigv
+
 '''
 sig_exps = [ (pc % order) for pc in PC ]   # -1 % order => order-1, 1 => 1
 
 SIG = SS[0] ** sig_exps[0]
 for i in range(1, n):
     SIG = SIG * (SS[i] ** sig_exps[i])
-
+'''
 #t11 = time.time()
 #print("server time for encrypted response calculation", t11-t1)
     
@@ -1012,16 +1013,17 @@ for i in range(n):
     
     
 #vr = GH[0] ** PC[0]
-'''
+
 vr = GH[0] ** bh[0]
 for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
+
 '''
 vr = GH[0] ** sig_exps[0]
 for i in range(1, n):
     vr = vr * (GH[i] ** sig_exps[i])
-
+'''
 
 #agm_a = u[0]**DELTA[0]
 agm_a = u[0]**DELTAT[0]
@@ -1059,7 +1061,7 @@ for i in range(m):
     s = 0
     for j in range(n):
         # TT is cleartext floats(before encoding). If T stores encoded values in Zp, adapt:
-        s += ( (T[i][j] % p) * (PC[j]) )   # adjust exactly to your encoding method
+        s += ( (T[i][j] % p) * (bh[j]) )   # adjust exactly to your encoding method
     expected_exps.append(int(s % order))
 
 print("expected_exps[:5]:", expected_exps[:5])
