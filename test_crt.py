@@ -746,8 +746,9 @@ for j in range(m):
         mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
         row_residues.append(mod_res)
 
-    transposed_row_residues = [list(x) for x in zip(*row_residues)] #  4 x 32
-
+    transposed_row_residues = np.array([list(x) for x in zip(*row_residues)]) #  5 x 32
+    print(transposed_row_residues.shape)
+    
     enc_vecs = []
     for i, context in enumerate(contexts):
         enc_vec = ts.bfv_tensor(context, ts.plain_tensor(transposed_row_residues[i]), True)
