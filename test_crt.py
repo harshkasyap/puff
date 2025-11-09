@@ -978,6 +978,7 @@ for j in range(m):  # for each row
     for i, mod in enumerate(moduli):  # for each modulus/context
         # decrypt ciphertext under its context
         decrypted_val = deltat[j][i].decrypt()#.tolist()
+        print(decrypted_val)
         value = int(decrypted_val[0]) % mod
         row_residues.append(value)
 
