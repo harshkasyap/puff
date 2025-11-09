@@ -1064,7 +1064,7 @@ for i in range(m):
     s = 0
     for j in range(n):
         # TT is cleartext floats(before encoding). If T stores encoded values in Zp, adapt:
-        s += T[i][j] * bh[j])  # adjust exactly to your encoding method
+        s += (T[i][j] * bh[j])  # adjust exactly to your encoding method
     expected_exps.append(int(s))
 
 print("expected_exps[:5]:", expected_exps[:5])
