@@ -739,9 +739,9 @@ for j in range(m):
     # Encrypt entire row as one CKKS vector
 
     row_residues = []                   # holds residues for this row across all moduli
-        for mod in moduli:                  # for each modulus
-            mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
-            row_residues.append(mod_res)
+    for mod in moduli:                  # for each modulus
+        mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
+        row_residues.append(mod_res)
 
     transposed_row_residues = [list(x) for x in zip(*row_residues)]
 
