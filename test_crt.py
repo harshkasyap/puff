@@ -605,16 +605,18 @@ u = []
 for i in range(m):
     u.append( group.random(G1) )
 
-
+order = group.order()
     
 SS = [] # SS contains signature
 v = g ** alpha
 
 for j in range(n):
     H = group.hash(str("PID")+str(j), G1)
-    w = u[0] ** T[0][j]
+    #w = u[0] ** T[0][j]
+    w = u[0] ** (T[0][j] % order)
     for i in range(1,m):
-        w = w*(u[i] ** T[i][j])
+        #w = w*(u[i] ** T[i][j])
+        w = w * (u[i] ** (T[i][j] % order))
     #print("Hash", H)
     #print("w", w)
     si = H * w
@@ -904,7 +906,7 @@ bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 
 bh_residues = []                   # holds residues for this row across all moduli
 for mod in moduli:                  # for each modulus
-    mod_res = [(x % mod) for x in bh]   # residue vector for this modulus
+    mod_res = [(x % mod) for pc in PC]   # residue vector for this modulus
     bh_residues.append(mod_res)
 
 transposed_bh_residues = [list(x) for x in zip(*bh_residues)]
@@ -924,12 +926,18 @@ for j in range(m):
 
 
 #SIG = SS[0] ** PC[0] # combined signature
+'''
 SIG = SS[0] ** bh[0] # combined signature
 for i in range(1,n):
     #sigv =  (SS[i] ** PC[i])
     sigv =  (SS[i] ** bh[i])
     SIG = SIG*sigv
+'''
+sig_exps = [ (pc % order) for pc in PC ]   # -1 % order => order-1, 1 => 1
 
+SIG = SS[0] ** sig_exps[0]
+for i in range(1, n):
+    SIG = SIG * (SS[i] ** sig_exps[i])
 
 #t11 = time.time()
 #print("server time for encrypted response calculation", t11-t1)
@@ -983,7 +991,8 @@ for j in range(m):  # for each row
 
     # Combine residues via CRT if you used multiple moduli
     combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
-    DELTAT.append(combined)
+    reconstructed = int(combined) % order
+    DELTAT.append(reconstructed)
 
 print(DELTAT[0])
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
@@ -1040,8 +1049,7 @@ if (lhs != rhs ):
 #if(lhs == rhs):
     #print("lhs rhs match")
 
-
-
+print("Linear authenticator matched")
 
 R_f = []
 for i in range(m):
