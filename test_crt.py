@@ -978,9 +978,7 @@ for j in range(m):  # for each row
     for i, context in enumerate(contexts):  # for each modulus/context
         # decrypt ciphertext under its context
         decrypted_val = deltat[j][i].decrypt().tolist()
-        # since sum_ct is a scalar ciphertext, .tolist() returns [value]
-        value = int(decrypted_val[0])
-        row_residues.append(value)
+        row_residues.append(decrypted_val)
 
     # Combine residues via CRT if you used multiple moduli
     combined = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
