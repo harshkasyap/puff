@@ -1108,4 +1108,4 @@ t4 = time.time()
 
 
 print("verification time", t4-t3)
-VT.append(t4-t3)
+#VT.append(t4-t3)
