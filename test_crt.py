@@ -1028,6 +1028,7 @@ vrf = vr*agm_a
 rhs = pair(vrf, v) # right hand side value of the verification 
 lhs = pair(SIG, g) # left hand side value of the verification 
 
+print(lhs, rhs)
 
 # if (vrf**alpha != SIG):
 #     print("vrf, SIG mismatch")
