@@ -918,7 +918,7 @@ for i, context in enumerate(contexts):
 for j in range(m):
     delt = []
     for i, context in enumerate(contexts):
-        ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+        ct = EMT[j][i] * 10 #bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
         sum_ct = ct.sum()      # homomorphic sum across all slots
         delt.append(sum_ct)
     deltat.append(delt)
@@ -992,7 +992,7 @@ for j in range(m):  # for each row
 
     # Combine residues via CRT if you used multiple moduli
     combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
-    reconstructed = int(combined) % order
+    reconstructed = int(combined)
     
     #R_plain = combined % M           # full reconstructed integer in 0..M-1
     #R_exp   = int(R_plain % order)   # exponent value in 0..order-1
@@ -1062,8 +1062,8 @@ for i in range(m):
     s = 0
     for j in range(n):
         # TT is cleartext floats(before encoding). If T stores encoded values in Zp, adapt:
-        s += ( (T[i][j] % p) * (bh[j]) )   # adjust exactly to your encoding method
-    expected_exps.append(int(s % order))
+        s += T[i][j] * 10 #(bh[j]) )  # adjust exactly to your encoding method
+    expected_exps.append(int(s))
 
 print("expected_exps[:5]:", expected_exps[:5])
 print("DELTAT[:5]:", DELTAT[:5])
