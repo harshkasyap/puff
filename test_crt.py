@@ -898,13 +898,29 @@ for j in range(m):
     #delta.append(c)
     deltat.append(ct)
 '''
-
+'''
 bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
-for j in range(m):
-    ct = EMT[j] * bh_enc       # elementwise multiplication (encrypted × plaintext)
-    sum_ct = ct.sum()      # homomorphic sum across all slots
-    deltat.append(sum_ct)
+'''
 
+bh_residues = []                   # holds residues for this row across all moduli
+for mod in moduli:                  # for each modulus
+    mod_res = [(x % mod) for x in bh]   # residue vector for this modulus
+    bh_residues.append(mod_res)
+
+transposed_bh_residues = [list(x) for x in zip(*bh_residues)]
+
+bh_enc_vecs = []
+for i, context in enumerate(contexts):
+    bh_enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(transposed_bh_residues[i]), True)
+    bh_enc_vecs.append(bh_enc_vec)
+
+for j in range(m):
+    delt = []
+    for i, context in enumerate(contexts):
+        ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+        sum_ct = ct.sum()      # homomorphic sum across all slots
+        delt.append(sum_ct)
+    deltat.append(delt)
 
 
 #SIG = SS[0] ** PC[0] # combined signature
@@ -948,16 +964,27 @@ for i in range(m):
     DELTAT.append(priv_key.decrypt(deltat[i]))
 '''
 
+'''
 DELTAT = []
 for i in range(m):
     decrypted_vec = deltat[i].decrypt().tolist()       # returns Python list of integers
-    print(decrypted_vec)
-    if decrypted_vec >= PLAIN_MODULUS // 2:
-        decrypted_vec = decrypted_vec - PLAIN_MODULUS
-
-    # Now reduce modulo group order to make a valid exponent
-    decrypted_vec = decrypted_vec % group.order()
     DELTAT.append(decrypted_vec)
+'''
+
+DELTAT = []
+
+for j in range(m):  # for each row
+    row_residues = []
+    for i, context in enumerate(contexts):  # for each modulus/context
+        # decrypt ciphertext under its context
+        decrypted_val = deltat[j][i].decrypt().tolist()
+        # since sum_ct is a scalar ciphertext, .tolist() returns [value]
+        value = int(decrypted_val[0])
+        row_residues.append(value)
+
+    # Combine residues via CRT if you used multiple moduli
+    combined = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
+    DELTAT.append(combined)
 
 #print(DELTA)
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
