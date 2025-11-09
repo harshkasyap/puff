@@ -909,7 +909,6 @@ for mod in moduli:                  # for each modulus
     mod_res = [x % mod for x in bh]   # residue vector for this modulus
     bh_residues.append(mod_res)
 
-
 bh_residues = np.array(bh_residues)
 
 bh_enc_vecs = []
@@ -925,6 +924,7 @@ for j in range(m):
         delt.append(sum_ct)
     deltat.append(delt)
 
+print("deltat shape", np.array(deltat).shape)
 
 #SIG = SS[0] ** PC[0] # combined signature
 
@@ -1070,7 +1070,7 @@ for i in range(m):
 print("expected_exps[:5]:", expected_exps[:5])
 print("DELTAT[:5]:", DELTAT[:5])
 print("DELTAT_plain[:5]:", DELTAT_plain[:5])
-print("sig_exps[:10]:", sig_exps[:10])
+#print("sig_exps[:10]:", sig_exps[:10])
 print("lhs, rhs:", lhs, rhs)
 
 
