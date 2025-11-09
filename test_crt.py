@@ -738,11 +738,17 @@ for j in range(m):
 for j in range(m):
     # Encrypt entire row as one CKKS vector
 
-    residues = [T[j] % mod for mod in moduli]
-    
+    row_residues = []                   # holds residues for this row across all moduli
+        for mod in moduli:                  # for each modulus
+            mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
+            row_residues.append(mod_res)
+
+    transposed_row_residues = [list(x) for x in zip(*row_residues)]
+
+
     enc_vecs = []
     for i, context in enumerate(contexts):
-        enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(residues[i]), True)
+        enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(transposed_row_residues[i]), True)
         enc_vecs.append(enc_vec)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
