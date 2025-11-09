@@ -746,13 +746,11 @@ for j in range(m):
         mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
         row_residues.append(mod_res)
 
-    transposed_row_residues = np.array([list(x) for x in zip(*row_residues)]) #  5 x 32
-    transposed_row_residues = np.array(row_residues)
-    print(transposed_row_residues.shape)
-    
+    row_residues = np.array(row_residues)
+
     enc_vecs = []
     for i, context in enumerate(contexts):
-        enc_vec = ts.bfv_tensor(context, ts.plain_tensor(transposed_row_residues[i]), True)
+        enc_vec = ts.bfv_tensor(context, ts.plain_tensor(row_residues[i]), True)
         enc_vecs.append(enc_vec)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
@@ -911,20 +909,18 @@ for mod in moduli:                  # for each modulus
     mod_res = [x % mod for x in bh]   # residue vector for this modulus
     bh_residues.append(mod_res)
 
-transposed_bh_residues = [list(x) for x in zip(*bh_residues)]
 
-transposed_bh_residues = np.array(transposed_bh_residues)
-print("np.size(my_array)", transposed_bh_residues.shape)
+bh_residues = np.array(bh_residues)
 
 bh_enc_vecs = []
 for i, context in enumerate(contexts):
-    bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(transposed_bh_residues[i]), True)
+    bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
     bh_enc_vecs.append(bh_enc_vec)
 
 for j in range(m):
     delt = []
     for i, context in enumerate(contexts):
-        ct = EMT[j][i] * 10 #bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+        ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
         sum_ct = ct.sum()      # homomorphic sum across all slots
         delt.append(sum_ct)
     deltat.append(delt)
@@ -1068,7 +1064,7 @@ for i in range(m):
     s = 0
     for j in range(n):
         # TT is cleartext floats(before encoding). If T stores encoded values in Zp, adapt:
-        s += T[i][j] * 10 #(bh[j]) )  # adjust exactly to your encoding method
+        s += T[i][j] * bh[j])  # adjust exactly to your encoding method
     expected_exps.append(int(s))
 
 print("expected_exps[:5]:", expected_exps[:5])
