@@ -980,6 +980,7 @@ for i in range(m):
 '''
 
 DELTAT = []
+DELTAT_plain = []
 
 for j in range(m):  # for each row
     row_residues = []
@@ -991,8 +992,15 @@ for j in range(m):  # for each row
 
     # Combine residues via CRT if you used multiple moduli
     combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
-    reconstructed = int(combined) % order
-    DELTAT.append(reconstructed)
+    #reconstructed = int(combined) % order
+    
+    R_plain = combined % M           # full reconstructed integer in 0..M-1
+    R_exp   = int(R_plain % order)   # exponent value in 0..order-1
+
+    DELTAT_plain.append(R_plain)
+    DELTAT.append(R_exp)
+    
+    DELTAT.append(R_exp)
 
 print(DELTAT[0])
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
