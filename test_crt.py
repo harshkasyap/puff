@@ -983,6 +983,7 @@ for j in range(m):  # for each row
 
     # Combine residues via CRT if you used multiple moduli
     combined = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
+    print("combined", combined)
     DELTAT.append(combined)
 
 print(DELTAT[0])
