@@ -747,6 +747,7 @@ for j in range(m):
         row_residues.append(mod_res)
 
     transposed_row_residues = np.array([list(x) for x in zip(*row_residues)]) #  5 x 32
+    transposed_row_residues = row_residues
     print(transposed_row_residues.shape)
     
     enc_vecs = []
