@@ -748,7 +748,7 @@ for j in range(m):
 
     enc_vecs = []
     for i, context in enumerate(contexts):
-        enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(transposed_row_residues[i]), True)
+        enc_vec = ts.bfv_tensor(context, ts.plain_tensor(transposed_row_residues[i]), True)
         enc_vecs.append(enc_vec)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
@@ -911,7 +911,7 @@ transposed_bh_residues = [list(x) for x in zip(*bh_residues)]
 
 bh_enc_vecs = []
 for i, context in enumerate(contexts):
-    bh_enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(transposed_bh_residues[i]), True)
+    bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(transposed_bh_residues[i]), True)
     bh_enc_vecs.append(bh_enc_vec)
 
 for j in range(m):
