@@ -271,6 +271,7 @@ if not ok:
     raise RuntimeError(f"Selected moduli not pairwise coprime: moduli[{i}],moduli[{j}] share gcd {g}")
 
 #moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737, 1099547508737, 1099547508737, 1099547508737]
+moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
 
 M = prod(moduli)
 print("Total modulus product M bitlength:", M.bit_length())
