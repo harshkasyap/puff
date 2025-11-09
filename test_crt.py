@@ -264,7 +264,7 @@ def decode(v):
 
 '''
 
-moduli = choose_moduli_for_target(p, 8192, 40, 8)
+moduli = choose_moduli_for_target(p*p, 8192, 40, 8)
 ok, bad = moduli_pairwise_coprime(moduli)
 if not ok:
     i,j,g = bad
