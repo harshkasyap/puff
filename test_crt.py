@@ -1004,7 +1004,7 @@ for j in range(m):  # for each row
 
     DELTAT.append(reconstructed)
 
-print(DELTAT[0])
+print("DELTAT[0]", DELTAT[0])
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
 # exit(0)
 
