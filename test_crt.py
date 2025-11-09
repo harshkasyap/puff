@@ -263,14 +263,14 @@ def decode(v):
     return v_signed / tao
 
 '''
-'''
-moduli = choose_moduli_for_target(p, 8192, 40, 7)
+
+moduli = choose_moduli_for_target(p, 8192, 40, 8)
 ok, bad = moduli_pairwise_coprime(moduli)
 if not ok:
     i,j,g = bad
     raise RuntimeError(f"Selected moduli not pairwise coprime: moduli[{i}],moduli[{j}] share gcd {g}")
-'''
-moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737, 1099547508737, 1099547508737, 1099547508737]
+
+#moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737, 1099547508737, 1099547508737, 1099547508737]
 
 M = prod(moduli)
 print("Total modulus product M bitlength:", M.bit_length())
@@ -1065,7 +1065,7 @@ for i in range(m):
     for j in range(n):
         # TT is cleartext floats(before encoding). If T stores encoded values in Zp, adapt:
         s += (T[i][j] * bh[j])  # adjust exactly to your encoding method
-    expected_exps.append(s % p)
+    expected_exps.append(s)
 
 print("expected_exps[:5]:", expected_exps[:5])
 print("DELTAT[:5]:", DELTAT[:5])
