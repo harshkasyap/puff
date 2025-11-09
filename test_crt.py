@@ -977,8 +977,8 @@ for j in range(m):  # for each row
     row_residues = []
     for i, mod in enumerate(moduli):  # for each modulus/context
         # decrypt ciphertext under its context
-        decrypted_val = deltat[j][i].decrypt().tolist()
-        value = decrypted_val % mod
+        decrypted_val = deltat[j][i].decrypt()#.tolist()
+        value = int(decrypted_val[0]) % mod
         row_residues.append(value)
 
     # Combine residues via CRT if you used multiple moduli
