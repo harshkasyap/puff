@@ -912,7 +912,7 @@ for mod in moduli:                  # for each modulus
 transposed_bh_residues = [list(x) for x in zip(*bh_residues)]
 
 transposed_bh_residues = np.array(transposed_bh_residues)
-print("np.size(my_array)", np.size(transposed_bh_residues))
+print("np.size(my_array)", transposed_bh_residues.shape)
 
 bh_enc_vecs = []
 for i, context in enumerate(contexts):
