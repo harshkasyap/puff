@@ -8,6 +8,7 @@ import pickle
 import json
 import base64
 
+import numpy as np
 
 from phe import paillier
 from phe import util
@@ -909,6 +910,9 @@ for mod in moduli:                  # for each modulus
     bh_residues.append(mod_res)
 
 transposed_bh_residues = [list(x) for x in zip(*bh_residues)]
+
+transposed_bh_residues = np.array(transposed_bh_residues)
+print("np.size(my_array)", np.size(transposed_bh_residues))
 
 bh_enc_vecs = []
 for i, context in enumerate(contexts):
