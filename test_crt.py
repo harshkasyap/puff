@@ -745,8 +745,7 @@ for j in range(m):
         mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
         row_residues.append(mod_res)
 
-    transposed_row_residues = [list(x) for x in zip(*row_residues)]
-
+    transposed_row_residues = [list(x) for x in zip(*row_residues)] #  4 x 32
 
     enc_vecs = []
     for i, context in enumerate(contexts):
@@ -993,15 +992,17 @@ for j in range(m):  # for each row
 
     # Combine residues via CRT if you used multiple moduli
     combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
-    #reconstructed = int(combined) % order
+    reconstructed = int(combined) % order
     
-    R_plain = combined % M           # full reconstructed integer in 0..M-1
-    R_exp   = int(R_plain % order)   # exponent value in 0..order-1
+    #R_plain = combined % M           # full reconstructed integer in 0..M-1
+    #R_exp   = int(R_plain % order)   # exponent value in 0..order-1
 
-    DELTAT_plain.append(R_plain)
-    DELTAT.append(R_exp)
+    #DELTAT_plain.append(R_plain)
+    #DELTAT.append(R_exp)
     
-    DELTAT.append(R_exp)
+    #DELTAT.append(R_exp)
+
+    DELTAT.append(reconstructed)
 
 print(DELTAT[0])
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
