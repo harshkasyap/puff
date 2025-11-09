@@ -1004,10 +1004,16 @@ for i in range(n):
     
     
 #vr = GH[0] ** PC[0]
+'''
 vr = GH[0] ** bh[0]
 for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
+'''
+vr = GH[0] ** sig_exps[0]
+for i in range(1, n):
+    vr = vr * (GH[i] ** sig_exps[i])
+
 
 #agm_a = u[0]**DELTA[0]
 agm_a = u[0]**DELTAT[0]
