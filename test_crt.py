@@ -906,7 +906,7 @@ bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 
 bh_residues = []                   # holds residues for this row across all moduli
 for mod in moduli:                  # for each modulus
-    mod_res = [(x % mod) for pc in PC]   # residue vector for this modulus
+    mod_res = [(pc % mod) for pc in PC]   # residue vector for this modulus
     bh_residues.append(mod_res)
 
 transposed_bh_residues = [list(x) for x in zip(*bh_residues)]
