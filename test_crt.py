@@ -1053,6 +1053,22 @@ lhs = pair(SIG, g) # left hand side value of the verification
 
 print(lhs, rhs)
 
+# compute expected (cleartext) inner product mod order to verify homomorphic result
+expected_exps = []
+for i in range(m):
+    s = 0
+    for j in range(n):
+        # TT is cleartext floats(before encoding). If T stores encoded values in Zp, adapt:
+        s += ( (T[i][j] % p) * (PC[j]) )   # adjust exactly to your encoding method
+    expected_exps.append(int(s % order))
+
+print("expected_exps[:5]:", expected_exps[:5])
+print("DELTAT[:5]:", DELTAT[:5])
+print("DELTAT_plain[:5]:", DELTAT_plain[:5])
+print("sig_exps[:10]:", sig_exps[:10])
+print("lhs, rhs:", lhs, rhs)
+
+
 # if (vrf**alpha != SIG):
 #     print("vrf, SIG mismatch")
 if (lhs != rhs ):
