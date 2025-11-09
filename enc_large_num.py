@@ -173,7 +173,7 @@ def encrypt_multiply_crt(number: int, multiplier: int,
 if __name__ == "__main__":
     # change these inputs as needed
     number = 96419820023653965779435520
-    multiplier = 96419820023653965779435520
+    multiplier = 7
 
     # tune these parameters for your environment:
     poly_mod_degree = 8192    # try 8192 or 16384
