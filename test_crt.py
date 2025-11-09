@@ -975,17 +975,17 @@ DELTAT = []
 
 for j in range(m):  # for each row
     row_residues = []
-    for i, context in enumerate(contexts):  # for each modulus/context
+    for i, mod in enumerate(moduli):  # for each modulus/context
         # decrypt ciphertext under its context
         decrypted_val = deltat[j][i].decrypt().tolist()
-        print("decrypted_val", decrypted_val)
-        row_residues.append(decrypted_val)
+        value = decrypted_val % mod
+        row_residues.append(value)
 
     # Combine residues via CRT if you used multiple moduli
     combined = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
     DELTAT.append(combined)
 
-#print(DELTA)
+print(DELTAT[0])
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
 # exit(0)
 
@@ -999,8 +999,6 @@ vr = GH[0] ** bh[0]
 for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
-
-print("DELTAT[0]", DELTAT[0])
 
 #agm_a = u[0]**DELTA[0]
 agm_a = u[0]**DELTAT[0]
