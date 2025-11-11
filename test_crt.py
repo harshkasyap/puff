@@ -127,40 +127,6 @@ def writeInEncFile(enc_vec, filename):
 n = 32
 m = 32
 
-# CKKS parameters
-POLY_MODULUS_DEGREE = 8192   # typical secure choice
-COEFF_MOD_BIT_SIZES = [60, 40, 40, 60]  # coefficient modulus bit sizes, used for ckks
-PLAIN_MODULUS = 786433         # must be a prime number; can also use 2**20 or 65537, used for bfv
-
-# Create TenSEAL CKKS context
-ctx1 = ts.context(
-    ts.SCHEME_TYPE.CKKS,
-    poly_modulus_degree=POLY_MODULUS_DEGREE,
-    coeff_mod_bit_sizes=COEFF_MOD_BIT_SIZES
-)
-
-# Create TenSEAL BFV context
-ctx = ts.context(
-    ts.SCHEME_TYPE.BFV,
-    poly_modulus_degree=POLY_MODULUS_DEGREE,
-    plain_modulus=PLAIN_MODULUS
-)
-
-ctx.generate_galois_keys()   # if you need rotations
-ctx.generate_relin_keys()    # if you need multiplications
-ctx.global_scale = 2**40
-
-# ---- Save private context (with secret key) ----
-priv_ctx_bytes = ctx.serialize(save_secret_key=True)
-
-# ---- Save public context (no secret key) ----
-pub_ctx_bytes = ctx.serialize(
-    save_public_key=True,
-    save_secret_key=False,
-    save_galois_keys=True,
-    save_relin_keys=True
-)
-
 # ---- Store in keys.pkl like Paillier ----
 with open("keys_ts.pkl", "wb") as f:
     pickle.dump({
@@ -203,66 +169,6 @@ def decode(x):
         #print("decode 2nd", x/tao )
         return x/tao
 
-'''
-#p = util.getprimeover(160) #p is a 160-bit prime
-
-p = 1381819329670992382493016885514578963637936154479   ##p is a 160-bit prime
-
-print(p)
-
-tao = 2 ** 40
-
-
-if p - tao < 0:
-    print('p < tao')
-
-'''
-'''
-def encode(x ):
-    if (x > 0):
-        return round( x*tao )
-    else:
-        return (p -round( (-1)*x*tao ))
-
-
-def decode(x):
-    if x >= p/2:
-        #print("decode 1st", (x - p)/tao )
-        return (x - p)/tao
-    else:
-        #print("decode 2nd", x/tao )
-        return x/tao
-'''
-'''
-
-def encode(x):
-    if x > 0:
-        return int((x * tao) % p)
-    else:
-        return int((p - (-x * tao)) % p)
-
-def decode(x):
-    if x >= p/2:
-        return (x - p) / tao
-    else:
-        return x / tao
-'''
-'''
-tao = 2**20   # scale factor. choose so that |round(x*tao)| < PLAIN_MODULUS/2
-
-def encode(x):
-    s = int(round(x * tao))
-    return s % PLAIN_MODULUS
-
-def decode(v):
-    # v is in [0, PLAIN_MODULUS-1]; map to signed
-    if v >= PLAIN_MODULUS // 2:
-        v_signed = v - PLAIN_MODULUS
-    else:
-        v_signed = v
-    return v_signed / tao
-
-'''
 '''
 moduli = choose_moduli_for_target(p*p, 8192, 40, 8)
 ok, bad = moduli_pairwise_coprime(moduli)
