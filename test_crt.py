@@ -514,8 +514,8 @@ v = g ** alpha
 
 for j in range(n):
     H = group.hash(str("PID")+str(j), G1)
-    #w = u[0] ** T[0][j]
-    w = u[0] ** (T[0][j] % order)
+    w = u[0] ** T[0][j]
+    #£w = u[0] ** (T[0][j] % order)
     for i in range(1,m):
         #w = w*(u[i] ** T[i][j])
         w = w * (u[i] ** (T[i][j] % order))
