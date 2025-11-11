@@ -773,6 +773,16 @@ bh = [] #bh contains encoded (reformatted) challenges
 
 for i in range(n):
     bh.append(PC[i]%p)
+
+bh_residues = []                   # holds residues for this row across all moduli
+for mod in moduli:                  # for each modulus
+    mod_res = [x % mod for x in bh]   # residue vector for this modulus
+    bh_residues.append(mod_res)
+
+bh_enc_vecs = []
+for i, context in enumerate(contexts):
+    bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
+    bh_enc_vecs.append(bh_enc_vec)
     
 print("server compute")
 
@@ -796,16 +806,6 @@ for j in range(m):
 '''
 bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 '''
-
-bh_residues = []                   # holds residues for this row across all moduli
-for mod in moduli:                  # for each modulus
-    mod_res = [x % mod for x in bh]   # residue vector for this modulus
-    bh_residues.append(mod_res)
-
-bh_enc_vecs = []
-for i, context in enumerate(contexts):
-    bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
-    bh_enc_vecs.append(bh_enc_vec)
 
 for j in range(m):
     delt = []
