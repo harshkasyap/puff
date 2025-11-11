@@ -644,8 +644,6 @@ for j in range(m):
         mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
         row_residues.append(mod_res)
 
-    #row_residues = np.array(row_residues)
-
     enc_vecs = []
     for i, context in enumerate(contexts):
         enc_vec = ts.bfv_tensor(context, ts.plain_tensor(row_residues[i]), True)
@@ -801,8 +799,6 @@ for mod in moduli:                  # for each modulus
     mod_res = [x % mod for x in bh]   # residue vector for this modulus
     bh_residues.append(mod_res)
 
-#bh_residues = np.array(bh_residues)
-
 bh_enc_vecs = []
 for i, context in enumerate(contexts):
     bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
@@ -816,8 +812,6 @@ for j in range(m):
         delt.append(sum_ct)
     deltat.append(delt)
 
-print("deltat shape", np.array(deltat).shape)
-
 #SIG = SS[0] ** PC[0] # combined signature
 
 SIG = SS[0] ** bh[0] # combined signature
@@ -826,13 +820,6 @@ for i in range(1,n):
     sigv =  (SS[i] ** bh[i])
     SIG = SIG*sigv
 
-'''
-sig_exps = [ (pc % order) for pc in PC ]   # -1 % order => order-1, 1 => 1
-
-SIG = SS[0] ** sig_exps[0]
-for i in range(1, n):
-    SIG = SIG * (SS[i] ** sig_exps[i])
-'''
 #t11 = time.time()
 #print("server time for encrypted response calculation", t11-t1)
     
@@ -866,16 +853,7 @@ for i in range(m):
     DELTAT.append(priv_key.decrypt(deltat[i]))
 '''
 
-'''
 DELTAT = []
-for i in range(m):
-    decrypted_vec = deltat[i].decrypt().tolist()       # returns Python list of integers
-    DELTAT.append(decrypted_vec)
-'''
-
-DELTAT = []
-DELTAT_plain = []
-
 for j in range(m):  # for each row
     row_residues = []
     for i, mod in enumerate(moduli):  # for each modulus/context
@@ -887,18 +865,10 @@ for j in range(m):  # for each row
     # Combine residues via CRT if you used multiple moduli
     combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
     reconstructed = int(combined)
-    
-    #R_plain = combined % M           # full reconstructed integer in 0..M-1
-    #R_exp   = int(R_plain % order)   # exponent value in 0..order-1
-
-    #DELTAT_plain.append(R_plain)
-    #DELTAT.append(R_exp)
-    
-    #DELTAT.append(R_exp)
 
     DELTAT.append(reconstructed)
 
-print("DELTAT[0]", DELTAT[0])
+#print("DELTAT[0]", DELTAT[0])
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
 # exit(0)
 
@@ -951,6 +921,7 @@ lhs = pair(SIG, g) # left hand side value of the verification
 print(lhs, rhs)
 
 # compute expected (cleartext) inner product mod order to verify homomorphic result
+'''
 expected_exps = []
 for i in range(m):
     s = 0
@@ -964,7 +935,7 @@ print("DELTAT[:5]:", DELTAT[:5])
 print("DELTAT_plain[:5]:", DELTAT_plain[:5])
 #print("sig_exps[:10]:", sig_exps[:10])
 print("lhs, rhs:", lhs, rhs)
-
+'''
 
 # if (vrf**alpha != SIG):
 #     print("vrf, SIG mismatch")
