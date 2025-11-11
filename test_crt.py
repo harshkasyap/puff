@@ -515,10 +515,8 @@ v = g ** alpha
 for j in range(n):
     H = group.hash(str("PID")+str(j), G1)
     w = u[0] ** T[0][j]
-    #£w = u[0] ** (T[0][j] % order)
     for i in range(1,m):
-        #w = w*(u[i] ** T[i][j])
-        w = w * (u[i] ** (T[i][j] % order))
+        w = w*(u[i] ** T[i][j])
     #print("Hash", H)
     #print("w", w)
     si = H * w
@@ -623,7 +621,6 @@ for j in range(m):
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
     EM.append(base64.b64encode(enc_vec.serialize()))
 '''
-print("Server encrypted model for storing")
 
 EMT = [] #containts encrypted models based on T
 '''
@@ -647,7 +644,7 @@ for j in range(m):
         mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
         row_residues.append(mod_res)
 
-    row_residues = np.array(row_residues)
+    #row_residues = np.array(row_residues)
 
     enc_vecs = []
     for i, context in enumerate(contexts):
@@ -659,8 +656,10 @@ for j in range(m):
     #writeInEncFile(enc_vec.serialize(), "enc_vec"+str(i))
     # EMT.append(base64.b64encode(enc_vec.serialize()))
 
-print("First ciphertext")
+print("Server encrypted model for storing")
+
 '''
+print("First ciphertext")
 print(EMT[0][0][0])
 reconstructed_ciphertext = paillier.EncryptedNumber(pub_key, EMT[0][0][0], EMT[0][0][1])
 
@@ -773,14 +772,6 @@ bh = [] #bh contains encoded (reformatted) challenges
 
 for i in range(n):
     bh.append(PC[i]%p)
-
-'''
-bc = PC
-PLAIN_MODULUS = 786433
-bh = [(x % PLAIN_MODULUS) for x in PC]
-'''
-#print("bh[0]",bh[0], bc[1])
- 
     
 print("server compute")
 
@@ -810,7 +801,7 @@ for mod in moduli:                  # for each modulus
     mod_res = [x % mod for x in bh]   # residue vector for this modulus
     bh_residues.append(mod_res)
 
-bh_residues = np.array(bh_residues)
+#bh_residues = np.array(bh_residues)
 
 bh_enc_vecs = []
 for i, context in enumerate(contexts):
