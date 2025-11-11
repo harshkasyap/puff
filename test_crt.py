@@ -127,13 +127,6 @@ def writeInEncFile(enc_vec, filename):
 n = 32
 m = 32
 
-# ---- Store in keys.pkl like Paillier ----
-with open("keys_ts.pkl", "wb") as f:
-    pickle.dump({
-        "public_context": pub_ctx_bytes,
-        "private_context": priv_ctx_bytes
-    }, f)
-
 group = PairingGroup('SS512')
 order = group.order()
 
