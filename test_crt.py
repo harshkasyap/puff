@@ -918,8 +918,6 @@ vrf = vr*agm_a
 rhs = pair(vrf, v) # right hand side value of the verification 
 lhs = pair(SIG, g) # left hand side value of the verification 
 
-print(lhs, rhs)
-
 # compute expected (cleartext) inner product mod order to verify homomorphic result
 '''
 expected_exps = []
