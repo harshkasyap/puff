@@ -621,7 +621,9 @@ for j in range(m):
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
     EM.append(base64.b64encode(enc_vec.serialize()))
 '''
+print("Server encrypted model for storing")
 
+model_enc_start = time.time()
 EMT = [] #containts encrypted models based on T
 '''
 for j in range(m):
@@ -654,7 +656,8 @@ for j in range(m):
     #writeInEncFile(enc_vec.serialize(), "enc_vec"+str(i))
     # EMT.append(base64.b64encode(enc_vec.serialize()))
 
-print("Server encrypted model for storing")
+print("time to encrypt model is ", time.time() - model_enc_start)
+
 
 '''
 print("First ciphertext")
@@ -811,6 +814,8 @@ for j in range(m):
         sum_ct = ct.sum()      # homomorphic sum across all slots
         delt.append(sum_ct)
     deltat.append(delt)
+
+print("time to multiply model and bh ", time.time() - t1)
 
 #SIG = SS[0] ** PC[0] # combined signature
 
