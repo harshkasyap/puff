@@ -491,6 +491,7 @@ for j in range(m):
 
 print("Server encrypted model for storing")
 
+model_enc_start = time.time()
 EMT = [] #containts encrypted models based on T
 for j in range(m):
     emtt = []
@@ -503,6 +504,8 @@ for j in range(m):
         #print(emtt[i])
     EMT.append(emtt)
 #encryptrd model EMT  is stored with the server
+
+print("time to encrypt model is ", time.time() - model_enc_start)
 
 print("First ciphertext")
 print(EMT[0][0][0])
@@ -637,7 +640,7 @@ for j in range(m):
         #ct = ct + EMT[j][i]*PC[i]
     #delta.append(c)
     deltat.append(ct)
-
+print("time to multiply model and bh ", time.time() - t1)
 
 
 
