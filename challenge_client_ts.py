@@ -35,12 +35,27 @@ def decode(x):
         return x/tao
 
 
+import tenseal as ts
+
+def readfromEncFile(filename):
+    with open(filename, 'rb') as f:
+        ser_vec = f.read()
+    
+    return base64.b64decode(ser_vec)
+
+'''
 with open("keys.pkl", "rb") as f:
     keys = pickle.load(f)
 
 pub_key = keys["public_key"]
 priv_key = keys["private_key"]
+'''
 
+contexts = []
+for index in range(8):
+    data = read_from_file("out/public_context"+str(index))
+    context = ts.Context.deserialize(data)
+    contexts.append(context)
 
 #print("n =", pub_key.n)
 
@@ -140,6 +155,8 @@ def recv_with_length(sock):
 
 
 pickle_payload = recv_with_length(client_socket)
+
+'''
 recv_ct = pickle.loads(pickle_payload)
 
 
@@ -157,8 +174,21 @@ for item in recv_ct:
 
 #decryption of Ciphertext receive from Server
 DELTAT = [priv_key.decrypt(ct) for ct in recon_ct]
+'''
 
-
+DELTAT = []
+ciphertext_template="out/sum_ct{}_{}"
+for j in range(m):
+    enc_vecs = []
+    for i, context in enumerate(contexts):
+        fname = ciphertext_template.format(i, j)
+        if not os.path.exists(fname):
+            raise FileNotFoundError(f"Missing ciphertext file: {fname}")
+        
+        # deserialize bfv tensor into a TenSEAL object
+        ct = ts.bfv_tensor_from(context, readfromEncFile(fname))
+        enc_vecs.append(ct)
+    DELTAT.append(enc_vecs)
 
 json_payload = recv_with_length(client_socket)
 SIG_load = json.loads(json_payload.decode('utf-8'))
