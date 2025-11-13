@@ -19,9 +19,154 @@ from ast import literal_eval
 
 from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair 
 
+import tenseal as ts
+
+import sympy
+from math import prod, gcd
+from typing import List, Tuple
+
+# ---------- math helpers ----------
+def egcd(a: int, b: int) -> Tuple[int,int,int]:
+    if b == 0:
+        return (a, 1, 0)
+    g, x1, y1 = egcd(b, a % b)
+    return (g, y1, x1 - (a // b) * y1)
+
+def inv_mod(a: int, m: int) -> int:
+    g, x, _ = egcd(a, m)
+    if g != 1:
+        raise ValueError("Inverse does not exist")
+    return x % m
+
+def crt_reconstruct(residues: List[int], moduli: List[int]) -> Tuple[int, int]:
+    """Reconstruct x mod M, where M = product(moduli). Returns (x, M)."""
+    M = 1
+    for m in moduli:
+        M *= m
+    x = 0
+    for (r_i, m_i) in zip(residues, moduli):
+        M_i = M // m_i
+        inv = inv_mod(M_i, m_i)
+        x = (x + (r_i * M_i % M) * inv) % M
+    return x, M
+
+def moduli_pairwise_coprime(moduli: List[int]) -> Tuple[bool, Tuple[int,int,int] or None]:
+    n = len(moduli)
+    for i in range(n):
+        for j in range(i+1, n):
+            g = gcd(moduli[i], moduli[j])
+            if g != 1:
+                return False, (i, j, g)
+    return True, None
+
+# ---------- find batching-friendly prime ----------
+def find_batching_prime(poly_modulus_degree: int, bits: int, start_k: int = 1, max_tries: int = 5_000_000) -> int:
+    """
+    Find a prime t with ~bits bits such that:
+        t % (2 * poly_modulus_degree) == 1
+    Search t = 1 + k*(2*N) starting from start_k.
+    """
+    N2 = 2 * poly_modulus_degree
+    if bits > 10:
+        k = max(start_k, (1 << (bits - 1)) // N2)
+    else:
+        k = max(start_k, 1)
+    tries = 0
+    while tries < max_tries:
+        candidate = 1 + k * N2
+        if candidate.bit_length() >= bits - 2:
+            if sympy.isprime(candidate):
+                return candidate
+        k += 1
+        tries += 1
+    raise RuntimeError("No batching prime found in max tries; try increasing max_tries or bits")
+
+# ---------- choose moduli until product > target ----------
+def choose_moduli_for_target(target_value: int,
+                             poly_modulus_degree: int = 8192,
+                             per_modulus_bits: int = 40,
+                             max_moduli: int = 8) -> List[int]:
+    """
+    Pick batching-safe primes until product exceeds target_value.
+    Ensures uniqueness and pairwise coprime property.
+    """
+    moduli = []
+    product = 1
+    start_k = 1
+    round_no = 0
+    while product <= target_value:
+        round_no += 1
+        if len(moduli) >= max_moduli:
+            raise RuntimeError("Reached max_moduli limit; increase per_modulus_bits or max_moduli.")
+        print(f"[moduli] Round {round_no}: product bits={product.bit_length()} target bits={target_value.bit_length()}")
+        p = find_batching_prime(poly_modulus_degree, per_modulus_bits, start_k=start_k)
+        start_k += 1_000  # heuristic bump to avoid same region
+        # ensure uniqueness & coprime to previous
+        rejected = False
+        for prev in moduli:
+            if prev == p or gcd(prev, p) != 1:
+                print(f"[moduli] rejected candidate (duplicate/non-coprime): prev={prev}, candidate={p}, gcd={gcd(prev,p)}")
+                rejected = True
+                break
+        if rejected:
+            continue
+        moduli.append(p)
+        product *= p
+        print(f"[moduli] accepted prime (bitlen {p.bit_length()}); moduli count={len(moduli)}")
+        # heuristic: if still far from target, make next primes slightly bigger
+        if product.bit_length() < target_value.bit_length() // 2:
+            per_modulus_bits += 1
+    print(f"[moduli] selected {len(moduli)} moduli; total product bits={product.bit_length()}")
+    return moduli
+
+def writeInEncFile(enc_vec, filename):
+    ser_vec = base64.b64encode(enc_vec)
+
+    with open(filename, 'wb') as f:
+        f.write(ser_vec)
+
+'''
+moduli = choose_moduli_for_target(p*p, 8192, 40, 8)
+ok, bad = moduli_pairwise_coprime(moduli)
+if not ok:
+    i,j,g = bad
+    raise RuntimeError(f"Selected moduli not pairwise coprime: moduli[{i}],moduli[{j}] share gcd {g}")
+'''
+
+#moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737, 1099547508737, 1099547508737, 1099547508737]
+moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
+
+M = prod(moduli)
+print("Total modulus product M bitlength:", M.bit_length())
+if M <= p:
+    raise RuntimeError("Chosen moduli product not large enough!")
+
+print("moduli", moduli)
+# process each modulus
+contexts = []
+for i, mod in enumerate(moduli):
+    print(f"\n[CTX {i+1}/{len(moduli)}] modulus bitlen={mod.bit_length()}")
+    try:
+        context = ts.context(ts.SCHEME_TYPE.BFV, poly_modulus_degree=8192, plain_modulus=mod)
+        context.generate_galois_keys()
+        context.generate_relin_keys()
+    except Exception as e:
+        print("Error creating TenSEAL context for modulus:", mod)
+        raise
+
+    contexts.append(context)
+
+
+# Save FHE Contexts (keys).
+for index, context in enumerate(contexts):
+    public_context = context.serialize(save_public_key=False, save_secret_key=False, save_galois_keys=False, save_relin_keys=False)
+    writeInEncFile(public_context, "public_context"+str(index))
+
+
 n = 32
 m = 32
 
+'''
 pub_key,priv_key = paillier.generate_paillier_keypair(n_length=2048)
 
 
@@ -30,7 +175,7 @@ with open("keys.pkl", "wb") as f:
         "public_key": pub_key,
         "private_key": priv_key
     }, f)
-
+'''
 
 group = PairingGroup('SS512')
 order = group.order()
@@ -478,7 +623,7 @@ print(sum2)
 
 
 
-
+'''
 EM = [] #containts encrypted models
 for j in range(m):
     emt = []
@@ -487,12 +632,14 @@ for j in range(m):
         emt.append(pub_key.encrypt(TT[j][i]))
     EM.append(emt)
 #encryptrd model EM is NOT stored with the server
-
+'''
 
 print("Server encrypted model for storing")
 
 model_enc_start = time.time()
 EMT = [] #containts encrypted models based on T
+
+'''
 for j in range(m):
     emtt = []
     for i in range(n):
@@ -504,9 +651,28 @@ for j in range(m):
         #print(emtt[i])
     EMT.append(emtt)
 #encryptrd model EMT  is stored with the server
+'''
 
-print("time to encrypt model is ", time.time() - model_enc_start)
+for j in range(m):
+    # Encrypt with Batching True
 
+    row_residues = []                   # holds residues for this row across all moduli
+    for mod in moduli:                  # for each modulus
+        mod_res = [(x % mod) for x in T[j]]   # residue vector for this modulus
+        row_residues.append(mod_res)
+
+    enc_vecs = []
+    for i, context in enumerate(contexts):
+        enc_vec = ts.bfv_tensor(context, ts.plain_tensor(row_residues[i]), True)
+        writeInEncFile(enc_vec.serialize(), "enc_vec"+"_"+str(i)+"_"+str(j))
+        enc_vecs.append(enc_vec)
+
+    # Serialize ciphertext to bytes (so it can be stored/transmitted)
+    EMT.append(enc_vecs)    
+
+print("time to encrypt and store the model is ", time.time() - model_enc_start)
+
+'''
 print("First ciphertext")
 print(EMT[0][0][0])
 reconstructed_ciphertext = paillier.EncryptedNumber(pub_key, EMT[0][0][0], EMT[0][0][1])
@@ -530,11 +696,12 @@ print("---------------------------")
 
 #print("size of encrypted model")  
 #print(sum1)
+'''
 
-
-
+'''
 with open('ctext.pkl', 'wb') as file:
     pickle.dump(EMT, file)
+
 
 with open('ctext.pkl', 'rb') as file:
     loaded_EMT = pickle.load(file)
@@ -542,12 +709,12 @@ with open('ctext.pkl', 'rb') as file:
 
 if(EMT != loaded_EMT):
     print("mismatch")
-
+'''
 #print("Total size: encryption + authentication", (sum1+sum2)) 
 
 #MAS.append(sum1+sum2)
 
-#exit(0)
+exit(0)
 
 
 #ch = [ 0,  0, 1, 1, 1, 1, 1, 1,  0,  0, 1, 1,  0, 1,  0, 1, 1,  0,  0, 1, 1, 1,  0,  0, 1,  0, 1,  0,  0, 1, 1, 1]
