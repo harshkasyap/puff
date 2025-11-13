@@ -76,7 +76,7 @@ def f(c):
     contexts = []
     for index in range(8):
         data = readfromEncFile("out/public_context"+str(index))
-        context = ts.Context.deserialize(data)
+        context = ts.context_from(ctx_bytes)
         contexts.append(context)
 
     EMT = []
