@@ -12,63 +12,25 @@ import base64
 from phe import paillier
 from phe import util
 
-import tenseal as ts
+
 
 from ast import literal_eval
 
 
 from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair 
 
-
-def writeInEncFile(enc_vec, filename):
-    ser_vec = base64.b64encode(enc_vec)
-
-    with open(filename, 'wb') as f:
-        f.write(ser_vec)
-
 n = 32
 m = 32
 
-# CKKS parameters
-POLY_MODULUS_DEGREE = 8192   # typical secure choice
-COEFF_MOD_BIT_SIZES = [60, 40, 40, 60]  # coefficient modulus bit sizes, used for ckks
-PLAIN_MODULUS = 786433         # must be a prime number; can also use 2**20 or 65537, used for bfv
+pub_key,priv_key = paillier.generate_paillier_keypair(n_length=2048)
 
-# Create TenSEAL CKKS context
-ctx1 = ts.context(
-    ts.SCHEME_TYPE.CKKS,
-    poly_modulus_degree=POLY_MODULUS_DEGREE,
-    coeff_mod_bit_sizes=COEFF_MOD_BIT_SIZES
-)
 
-# Create TenSEAL BFV context
-ctx = ts.context(
-    ts.SCHEME_TYPE.BFV,
-    poly_modulus_degree=POLY_MODULUS_DEGREE,
-    plain_modulus=PLAIN_MODULUS
-)
-
-ctx.generate_galois_keys()   # if you need rotations
-ctx.generate_relin_keys()    # if you need multiplications
-ctx.global_scale = 2**40
-
-# ---- Save private context (with secret key) ----
-priv_ctx_bytes = ctx.serialize(save_secret_key=True)
-
-# ---- Save public context (no secret key) ----
-pub_ctx_bytes = ctx.serialize(
-    save_public_key=True,
-    save_secret_key=False,
-    save_galois_keys=True,
-    save_relin_keys=True
-)
-
-# ---- Store in keys.pkl like Paillier ----
-with open("keys_ts.pkl", "wb") as f:
+with open("keys.pkl", "wb") as f:
     pickle.dump({
-        "public_context": pub_ctx_bytes,
-        "private_context": priv_ctx_bytes
+        "public_key": pub_key,
+        "private_key": priv_key
     }, f)
+
 
 group = PairingGroup('SS512')
 order = group.order()
@@ -105,66 +67,10 @@ def decode(x):
         #print("decode 2nd", x/tao )
         return x/tao
 
-'''
-#p = util.getprimeover(160) #p is a 160-bit prime
-
-p = 1381819329670992382493016885514578963637936154479   ##p is a 160-bit prime
-
-print(p)
-
-tao = 2 ** 40
 
 
-if p - tao < 0:
-    print('p < tao')
-
-'''
-'''
-def encode(x ):
-    if (x > 0):
-        return round( x*tao )
-    else:
-        return (p -round( (-1)*x*tao ))
 
 
-def decode(x):
-    if x >= p/2:
-        #print("decode 1st", (x - p)/tao )
-        return (x - p)/tao
-    else:
-        #print("decode 2nd", x/tao )
-        return x/tao
-'''
-'''
-
-def encode(x):
-    if x > 0:
-        return int((x * tao) % p)
-    else:
-        return int((p - (-x * tao)) % p)
-
-def decode(x):
-    if x >= p/2:
-        return (x - p) / tao
-    else:
-        return x / tao
-'''
-'''
-tao = 2**20   # scale factor. choose so that |round(x*tao)| < PLAIN_MODULUS/2
-
-def encode(x):
-    s = int(round(x * tao))
-    return s % PLAIN_MODULUS
-
-def decode(v):
-    # v is in [0, PLAIN_MODULUS-1]; map to signed
-    if v >= PLAIN_MODULUS // 2:
-        v_signed = v - PLAIN_MODULUS
-    else:
-        v_signed = v
-    return v_signed / tao
-
-'''
 
 
 
@@ -466,7 +372,6 @@ for j in range(m):
        # print(TT[i], z, y)
     T.append(Tt)
 
-print("First encoded vec", T[0])
 
 
 
@@ -499,15 +404,13 @@ for j in range(n):
     if j == 0:
         print("SIG ", sig)
     #print("sig", sig)
-    SS.append(sig)
-    #SS.append(base64.b64encode(group.serialize(sig)).decode()) # encode to base64 after serialization
+    SS.append(base64.b64encode(group.serialize(sig)).decode()) # encode to base64 after serialization
 
     
 
 g_serialized = base64.b64encode(group.serialize(g)).decode() # serialize g and convert to base64
 v_serialized = base64.b64encode(group.serialize(v)).decode() # serialize g and convert to base64
 
-'''
 U = []
 for i in range(m):
     U.append(base64.b64encode(group.serialize(u[i])).decode())
@@ -544,7 +447,7 @@ print("v", v)
 print("v1", v1)
 
 print("SIG ",  new)
-'''
+
 #loaded_SS = [
 #    [point["x"], point["y"]]
 #    for point in loaded_serialized_points
@@ -575,7 +478,7 @@ print(sum2)
 
 
 
-'''
+
 EM = [] #containts encrypted models
 for j in range(m):
     emt = []
@@ -584,22 +487,12 @@ for j in range(m):
         emt.append(pub_key.encrypt(TT[j][i]))
     EM.append(emt)
 #encryptrd model EM is NOT stored with the server
-'''
 
-'''
-EM = []
-print ("First row to encrypt", TT[0])
-for j in range(m):
-    # Encrypt entire row as one CKKS vector
-    enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(TT[j]), True)
 
-    # Serialize ciphertext to bytes (so it can be stored/transmitted)
-    EM.append(base64.b64encode(enc_vec.serialize()))
-'''
 print("Server encrypted model for storing")
 
+model_enc_start = time.time()
 EMT = [] #containts encrypted models based on T
-'''
 for j in range(m):
     emtt = []
     for i in range(n):
@@ -611,18 +504,10 @@ for j in range(m):
         #print(emtt[i])
     EMT.append(emtt)
 #encryptrd model EMT  is stored with the server
-'''
-for j in range(m):
-    # Encrypt entire row as one CKKS vector
-    enc_vec = ts.bfv_tensor(ctx, ts.plain_tensor(T[j]), True)
 
-    # Serialize ciphertext to bytes (so it can be stored/transmitted)
-    EMT.append(enc_vec)    
-    writeInEncFile(enc_vec.serialize(), "enc_vec"+str(i))
-    # EMT.append(base64.b64encode(enc_vec.serialize()))
+print("time to encrypt model is ", time.time() - model_enc_start)
 
 print("First ciphertext")
-'''
 print(EMT[0][0][0])
 reconstructed_ciphertext = paillier.EncryptedNumber(pub_key, EMT[0][0][0], EMT[0][0][1])
 
@@ -632,7 +517,7 @@ print(reconstructed_ciphertext)
 
 print("Decryption")
 print(priv_key.decrypt(reconstructed_ciphertext))
-'''
+
 print("---------------------------")
 
 
@@ -647,17 +532,16 @@ print("---------------------------")
 #print(sum1)
 
 
-'''
+
 with open('ctext.pkl', 'wb') as file:
     pickle.dump(EMT, file)
 
 with open('ctext.pkl', 'rb') as file:
     loaded_EMT = pickle.load(file)
-    
+
 
 if(EMT != loaded_EMT):
     print("mismatch")
-'''
 
 #print("Total size: encryption + authentication", (sum1+sum2)) 
 
@@ -736,11 +620,6 @@ bh = [] #bh contains encoded (reformatted) challenges
 for i in range(n):
     bh.append(PC[i]%p)
 
-'''
-bc = PC
-PLAIN_MODULUS = 786433
-bh = [(x % PLAIN_MODULUS) for x in PC]
-'''
 #print("bh[0]",bh[0], bc[1])
  
     
@@ -751,7 +630,6 @@ t1 = time.time()
 # m = 142 paper q = m, paper t = n
 #delta = [] # encrypted response
 deltat = [] # encrypted response based on EMT
-'''
 for j in range(m):
     #c = EM[j][0]*PC[0]
     ct = EMT[j][0]*bh[0]
@@ -762,13 +640,7 @@ for j in range(m):
         #ct = ct + EMT[j][i]*PC[i]
     #delta.append(c)
     deltat.append(ct)
-'''
-
-bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
-for j in range(m):
-    ct = EMT[j] * bh_enc       # elementwise multiplication (encrypted × plaintext)
-    sum_ct = ct.sum()      # homomorphic sum across all slots
-    deltat.append(sum_ct)
+print("time to multiply model and bh ", time.time() - t1)
 
 
 
@@ -788,7 +660,7 @@ for i in range(1,n):
 t2 = time.time()
 print("server compute time", t2-t1)
 
-#ST.append(t2-t1)
+ST.append(t2-t1)
 
 #verification 
     
@@ -807,22 +679,10 @@ t3 = time.time()
 #         ns1 = ns1 + PC[j]*T[i][j]
 #     print("plaintext sum", ns, decode(ns1 % p) )
 
-'''
 DELTAT = [] # decryption of server's respponse based on T
 for i in range(m):
     DELTAT.append(priv_key.decrypt(deltat[i]))
-'''
 
-DELTAT = []
-for i in range(m):
-    decrypted_vec = deltat[i].decrypt().tolist()       # returns Python list of integers
-    print(decrypted_vec)
-    if decrypted_vec >= PLAIN_MODULUS // 2:
-        decrypted_vec = decrypted_vec - PLAIN_MODULUS
-
-    # Now reduce modulo group order to make a valid exponent
-    decrypted_vec = decrypted_vec % group.order()
-    DELTAT.append(decrypted_vec)
 
 #print(DELTA)
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
@@ -878,7 +738,7 @@ if (lhs != rhs ):
 #if(lhs == rhs):
     #print("lhs rhs match")
 
-
+print("Linear authenticator match")
 
 
 R_f = []
@@ -903,7 +763,6 @@ t4 = time.time()
 
 print("verification time", t4-t3)
 VT.append(t4-t3)
-
 
 
 
