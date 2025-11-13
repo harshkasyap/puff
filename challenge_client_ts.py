@@ -282,6 +282,8 @@ for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
 
+print("u[0]**DELTAT[0]", u[0],DELTAT[0])
+
 #agm_a = u[0]**DELTA[0]
 agm_a = u[0]**DELTAT[0]
 for i in range(1, m):
