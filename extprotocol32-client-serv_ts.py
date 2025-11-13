@@ -125,6 +125,43 @@ def writeInEncFile(enc_vec, filename):
     with open(filename, 'wb') as f:
         f.write(ser_vec)
 
+group = PairingGroup('SS512')
+order = group.order()
+
+#print('order')
+#print(order)
+#p = order // 2
+
+
+#p = util.getprimeover(160) #p is a 160-bit prime
+
+p = 1381819329670992382493016885514578963637936154479   ##p is a 160-bit prime
+
+print(p)
+
+tao = 2 ** 90
+
+if p - tao < 0:
+    print('p < tao')
+
+def encode(x ):
+    if (x > 0):
+        return round( x*tao )
+    else:
+        return (p -round( (-1)*x*tao ))
+
+
+def decode(x):
+    if x >= p/2:
+        #print("decode 1st", (x - p)/tao )
+        return (x - p)/tao
+    else:
+        #print("decode 2nd", x/tao )
+        return x/tao
+
+
+
+
 '''
 moduli = choose_moduli_for_target(p*p, 8192, 40, 8)
 ok, bad = moduli_pairwise_coprime(moduli)
@@ -176,45 +213,6 @@ with open("keys.pkl", "wb") as f:
         "private_key": priv_key
     }, f)
 '''
-
-group = PairingGroup('SS512')
-order = group.order()
-
-#print('order')
-#print(order)
-#p = order // 2
-
-
-#p = util.getprimeover(160) #p is a 160-bit prime
-
-p = 1381819329670992382493016885514578963637936154479   ##p is a 160-bit prime
-
-print(p)
-
-tao = 2 ** 90
-
-
-if p - tao < 0:
-    print('p < tao')
-
-def encode(x ):
-    if (x > 0):
-        return round( x*tao )
-    else:
-        return (p -round( (-1)*x*tao ))
-
-
-def decode(x):
-    if x >= p/2:
-        #print("decode 1st", (x - p)/tao )
-        return (x - p)/tao
-    else:
-        #print("decode 2nd", x/tao )
-        return x/tao
-
-
-
-
 
 
 
