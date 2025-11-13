@@ -26,6 +26,12 @@ from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair
 
 import tenseal as ts
 
+def writeInEncFile(enc_vec, filename):
+    ser_vec = base64.b64encode(enc_vec)
+
+    with open(filename, 'wb') as f:
+        f.write(ser_vec)
+
 def readfromEncFile(filename):
     with open(filename, 'rb') as f:
         ser_vec = f.read()
@@ -148,6 +154,7 @@ def f(c):
         for i, context in enumerate(contexts):
             ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
             sum_ct = ct.sum()      # homomorphic sum across all slots
+            writeInEncFile(sum_ct.serialize(), "out/sum_ct"+"_"+str(i)+"_"+str(j))
             delt.append(sum_ct)
         deltat.append(delt)
 
