@@ -197,7 +197,7 @@ for i, mod in enumerate(moduli):
 # Save FHE Contexts (keys).
 for index, context in enumerate(contexts):
     public_context = context.serialize(save_public_key=False, save_secret_key=False, save_galois_keys=False, save_relin_keys=False)
-    writeInEncFile(public_context, "public_context"+str(index))
+    writeInEncFile(public_context, "out/public_context"+str(index))
 
 
 n = 32
