@@ -144,12 +144,12 @@ def f(c):
         bh_enc_vecs.append(bh_enc_vec)
         
     for j in range(m):
-    delt = []
-    for i, context in enumerate(contexts):
-        ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
-        sum_ct = ct.sum()      # homomorphic sum across all slots
-        delt.append(sum_ct)
-    deltat.append(delt)
+        delt = []
+        for i, context in enumerate(contexts):
+            ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+            sum_ct = ct.sum()      # homomorphic sum across all slots
+            delt.append(sum_ct)
+        deltat.append(delt)
 
 
    # print("SSD")
