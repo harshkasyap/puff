@@ -196,7 +196,7 @@ for i, mod in enumerate(moduli):
 
 # Save FHE Contexts (keys).
 for index, context in enumerate(contexts):
-    public_context = context.serialize(save_public_key=False, save_secret_key=False, save_galois_keys=False, save_relin_keys=False)
+    public_context = context.serialize(save_public_key=True, save_secret_key=True, save_galois_keys=True, save_relin_keys=True)
     writeInEncFile(public_context, "out/public_context"+str(index))
 
 
