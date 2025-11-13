@@ -24,6 +24,13 @@ from ast import literal_eval
 
 from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair
 
+import tenseal as ts
+
+def readfromEncFile(filename):
+    with open(filename, 'rb') as f:
+        ser_vec = f.read()
+    
+    return base64.b64decode(ser_vec)
 
 group = PairingGroup('SS512')
 order = group.order()
@@ -60,6 +67,28 @@ def f(c):
 
     #print("Restored:", P_restored)
 
+    contexts = []
+    for index in range(8):
+        data = read_from_file("out/public_context"+str(index))
+        context = ts.Context.deserialize(data)
+        contexts.append(context)
+
+    EMT = []
+    ciphertext_template="out/enc_vec_{}_{}"
+    for j in range(m):
+        enc_vecs = []
+        for i, context in enumerate(contexts):
+            fname = ciphertext_template.format(i, j)
+            if not os.path.exists(fname):
+                raise FileNotFoundError(f"Missing ciphertext file: {fname}")
+            
+            # deserialize bfv tensor into a TenSEAL object
+            ct = ts.bfv_tensor_from(context, readfromEncFile(fname))
+            enc_vecs.append(ct)
+        EMT.append(enc_vecs)
+    return EMT
+    
+    '''
     with open('ctext.pkl', 'rb') as file:
         EMTP = pickle.load(file)
 
@@ -83,14 +112,11 @@ def f(c):
             reconstructed_ciphertext = paillier.EncryptedNumber(pub_key, EMTP[j][i][0], EMTP[j][i][1])
             TM.append(reconstructed_ciphertext)
         EMT.append(TM)
-    '''print("Reconstructed ciphertext")
-    for i in range(n):
-        print(EMT[0][i])
-   ''' 
 
     #print("decryption", priv_key.decrypt(EMT[0][0]))
 
     #print("server computation on reconstructed ciphertext")
+    '''
 
     bh = [] #bh contains encoded (reformatted) challenges
 
@@ -98,13 +124,32 @@ def f(c):
         bh.append(c[i]%p)
         #print(c[i]%p)
 
+    '''
     deltat = [] # encrypted response based on EMT
     for j in range(m):
         ct = EMT[j][0]*bh[0]
         for i in range(1,n):
             ct = ct + EMT[j][i]*bh[i]
         deltat.append(ct)
+    '''
 
+    bh_residues = []                   # holds residues for this row across all moduli
+    for mod in moduli:                  # for each modulus
+        mod_res = [x % mod for x in bh]   # residue vector for this modulus
+        bh_residues.append(mod_res)
+    
+    bh_enc_vecs = []
+    for i, context in enumerate(contexts):
+        bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
+        bh_enc_vecs.append(bh_enc_vec)
+        
+    for j in range(m):
+    delt = []
+    for i, context in enumerate(contexts):
+        ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+        sum_ct = ct.sum()      # homomorphic sum across all slots
+        delt.append(sum_ct)
+    deltat.append(delt)
 
 
    # print("SSD")
