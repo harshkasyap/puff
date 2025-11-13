@@ -43,6 +43,16 @@ def readfromEncFile(filename):
     
     return base64.b64decode(ser_vec)
 
+# helper to receive exactly n bytes
+def recv_all(sock, n):
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            raise ConnectionError("socket closed")
+        data.extend(packet)
+    return bytes(data)
+
 '''
 with open("keys.pkl", "rb") as f:
     keys = pickle.load(f)
@@ -153,10 +163,10 @@ def recv_with_length(sock):
     return data
 
 
-
+'''
 pickle_payload = recv_with_length(client_socket)
 
-'''
+
 recv_ct = pickle.loads(pickle_payload)
 
 
@@ -174,7 +184,7 @@ for item in recv_ct:
 
 #decryption of Ciphertext receive from Server
 DELTAT = [priv_key.decrypt(ct) for ct in recon_ct]
-'''
+
 
 DELTAT = []
 ciphertext_template="out/sum_ct{}_{}"
@@ -189,6 +199,29 @@ for j in range(m):
         ct = ts.bfv_tensor_from(context, readfromEncFile(fname))
         enc_vecs.append(ct)
     DELTAT.append(enc_vecs)
+'''
+
+length_bytes = recv_all(server_socket, 8)
+length = int.from_bytes(length_bytes, "big")
+blob = recv_all(server_socket, length)
+payload = pickle.loads(blob)
+
+rows = payload["rows"]
+cols = payload["cols"]
+cipher_bytes = payload["ciphers"]
+
+# reconstruct 2D list of BFV tensors
+DELTAT = []
+idx = 0
+for r in range(rows):
+    row_cts = []
+    for c in range(cols):
+        b = cipher_bytes[idx]; idx += 1
+        # Use the corresponding context for column c (receiver must have contexts list)
+        ctx = contexts[c]                 # contexts[c] must be loaded already
+        ct = ts.bfv_tensor_from(ctx, b)  # reconstruct BFVTensor
+        row_cts.append(ct)
+    DELTAT.append(row_cts)
 
 json_payload = recv_with_length(client_socket)
 SIG_load = json.loads(json_payload.decode('utf-8'))
