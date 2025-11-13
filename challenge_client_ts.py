@@ -37,6 +37,31 @@ def decode(x):
 
 import tenseal as ts
 
+# ---------- math helpers ----------
+def egcd(a: int, b: int) -> Tuple[int,int,int]:
+    if b == 0:
+        return (a, 1, 0)
+    g, x1, y1 = egcd(b, a % b)
+    return (g, y1, x1 - (a // b) * y1)
+
+def inv_mod(a: int, m: int) -> int:
+    g, x, _ = egcd(a, m)
+    if g != 1:
+        raise ValueError("Inverse does not exist")
+    return x % m
+
+def crt_reconstruct(residues: List[int], moduli: List[int]) -> Tuple[int, int]:
+    """Reconstruct x mod M, where M = product(moduli). Returns (x, M)."""
+    M = 1
+    for m in moduli:
+        M *= m
+    x = 0
+    for (r_i, m_i) in zip(residues, moduli):
+        M_i = M // m_i
+        inv = inv_mod(M_i, m_i)
+        x = (x + (r_i * M_i % M) * inv) % M
+    return x, M
+
 def readfromEncFile(filename):
     with open(filename, 'rb') as f:
         ser_vec = f.read()
@@ -61,6 +86,7 @@ pub_key = keys["public_key"]
 priv_key = keys["private_key"]
 '''
 
+moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
 contexts = []
 for index in range(8):
     data = readfromEncFile("out/public_context"+str(index))
@@ -211,7 +237,7 @@ cols = payload["cols"]
 cipher_bytes = payload["ciphers"]
 
 # reconstruct 2D list of BFV tensors
-DELTAT = []
+deltat = []
 idx = 0
 for r in range(rows):
     row_cts = []
@@ -221,7 +247,22 @@ for r in range(rows):
         ctx = contexts[c]                 # contexts[c] must be loaded already
         ct = ts.bfv_tensor_from(ctx, b)  # reconstruct BFVTensor
         row_cts.append(ct)
-    DELTAT.append(row_cts)
+    deltat.append(row_cts)
+
+DELTAT = []
+for j in range(m):  # for each row
+    row_residues = []
+    for i, mod in enumerate(moduli):  # for each modulus/context
+        # decrypt ciphertext under its context
+        decrypted_val = deltat[j][i].decrypt().tolist()
+        value = int(decrypted_val) % mod
+        row_residues.append(value)
+
+    # Combine residues via CRT if you used multiple moduli
+    combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
+    reconstructed = int(combined)
+
+    DELTAT.append(reconstructed)
 
 json_payload = recv_with_length(client_socket)
 SIG_load = json.loads(json_payload.decode('utf-8'))
