@@ -148,7 +148,8 @@ def f(c):
     for i, context in enumerate(contexts):
         bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
         bh_enc_vecs.append(bh_enc_vec)
-        
+    
+    deltat = []
     for j in range(m):
         delt = []
         for i, context in enumerate(contexts):
