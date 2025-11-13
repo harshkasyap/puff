@@ -73,6 +73,7 @@ def f(c):
 
     #print("Restored:", P_restored)
 
+    moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
     contexts = []
     for index in range(8):
         data = readfromEncFile("out/public_context"+str(index))
