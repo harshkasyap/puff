@@ -664,7 +664,7 @@ for j in range(m):
     enc_vecs = []
     for i, context in enumerate(contexts):
         enc_vec = ts.bfv_tensor(context, ts.plain_tensor(row_residues[i]), True)
-        writeInEncFile(enc_vec.serialize(), "enc_vec"+"_"+str(i)+"_"+str(j))
+        writeInEncFile(enc_vec.serialize(), "out/enc_vec"+"_"+str(i)+"_"+str(j))
         enc_vecs.append(enc_vec)
 
     # Serialize ciphertext to bytes (so it can be stored/transmitted)
