@@ -53,7 +53,7 @@ priv_key = keys["private_key"]
 
 contexts = []
 for index in range(8):
-    data = read_from_file("out/public_context"+str(index))
+    data = readfromEncFile("out/public_context"+str(index))
     context = ts.Context.deserialize(data)
     contexts.append(context)
 
