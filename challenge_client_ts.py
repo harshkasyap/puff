@@ -201,9 +201,9 @@ for j in range(m):
     DELTAT.append(enc_vecs)
 '''
 
-length_bytes = recv_all(server_socket, 8)
+length_bytes = recv_all(client_socket, 8)
 length = int.from_bytes(length_bytes, "big")
-blob = recv_all(server_socket, length)
+blob = recv_all(client_socket, length)
 payload = pickle.loads(blob)
 
 rows = payload["rows"]
