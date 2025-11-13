@@ -92,7 +92,6 @@ def f(c):
             ct = ts.bfv_tensor_from(context, readfromEncFile(fname))
             enc_vecs.append(ct)
         EMT.append(enc_vecs)
-    return EMT
     
     '''
     with open('ctext.pkl', 'rb') as file:
