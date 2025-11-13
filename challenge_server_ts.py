@@ -155,10 +155,9 @@ def f(c):
         for i, context in enumerate(contexts):
             ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
             sum_ct = ct.sum()      # homomorphic sum across all slots
-            writeInEncFile(sum_ct.serialize(), "out/sum_ct"+"_"+str(i)+"_"+str(j))
+            #writeInEncFile(sum_ct.serialize(), "out/sum_ct"+"_"+str(i)+"_"+str(j))
             delt.append(sum_ct)
         deltat.append(delt)
-
 
    # print("SSD")
     #print(SSD[0])
@@ -179,7 +178,7 @@ def f(c):
 #            }, file)
 
 
-
+    '''
     cipher_data = pickle.dumps([{
         "ciphertext": ct.ciphertext(),   # integer
         "exponent": ct.exponent          # integer
@@ -189,7 +188,24 @@ def f(c):
     #pickle.dumps(cipher_data)
     client_socket.sendall(len(cipher_data).to_bytes(4, 'big'))
     client_socket.sendall(cipher_data)
+    '''
 
+    # deltat is list of m rows, each row is list of len(contexts) BFV tensors (sum_ct)
+    rows = len(deltat)
+    cols = len(deltat[0]) if rows>0 else 0
+    
+    # build a flat list of serialized tensors in row-major order
+    cipher_bytes = [ct.serialize() for row in deltat for ct in row]
+    
+    payload = {
+        "rows": rows,
+        "cols": cols,
+        "ciphers": cipher_bytes,   # list of bytes objects
+    }
+    
+    blob = pickle.dumps(payload, protocol=4)   # or higher
+    client_socket.sendall(len(blob).to_bytes(8, "big"))   # 8 bytes length prefix
+    client_socket.sendall(blob)
 
 
 
