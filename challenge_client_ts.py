@@ -263,20 +263,20 @@ for r in range(rows):
     deltat.append(row_cts)
 '''
 
-hdr = recv_all(server_socket, 8)
-rows, cols = struct.unpack(">II", hdr)
+#hdr = recv_all(client_socket, 8)
+#rows, cols = struct.unpack(">II", hdr)
 
 deltat = []
-for r in range(rows):
+for r in range(m):
     row_cts = []
-    for c in range(cols):
+    for c, ctx in enumerate(contexts):
         # read length
-        lbytes = recv_all(server_socket, 4)
+        lbytes = recv_all(client_socket, 4)
         clen = int.from_bytes(lbytes, "big")
         # read ciphertext bytes
-        cbytes = recv_all(server_socket, clen)
+        cbytes = recv_all(client_socket, clen)
 
-        ctx = contexts[c]                              # already reconstructed TenSEAL contexts
+        #ctx = contexts[c]                              # already reconstructed TenSEAL contexts
         ct = ts.bfv_tensor_from(ctx, cbytes)          # rebuild BFVTensor
         row_cts.append(ct)
     deltat.append(row_cts)
