@@ -21,6 +21,17 @@ from typing import List, Tuple
     
 from ast import literal_eval
 
+import struct
+
+def recv_all(sock, n: int) -> bytes:
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            raise ConnectionError("socket connection broken")
+        data.extend(packet)
+    return bytes(data)
+
 from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair
             
 
@@ -228,7 +239,7 @@ for j in range(m):
         enc_vecs.append(ct)
     DELTAT.append(enc_vecs)
 '''
-
+'''
 length_bytes = recv_all(client_socket, 8)
 length = int.from_bytes(length_bytes, "big")
 blob = recv_all(client_socket, length)
@@ -248,6 +259,25 @@ for r in range(rows):
         # Use the corresponding context for column c (receiver must have contexts list)
         ctx = contexts[c]                 # contexts[c] must be loaded already
         ct = ts.bfv_tensor_from(ctx, b)  # reconstruct BFVTensor
+        row_cts.append(ct)
+    deltat.append(row_cts)
+'''
+
+hdr = recv_all(server_socket, 8)
+rows, cols = struct.unpack(">II", hdr)
+
+deltat = []
+for r in range(rows):
+    row_cts = []
+    for c in range(cols):
+        # read length
+        lbytes = recv_all(server_socket, 4)
+        clen = int.from_bytes(lbytes, "big")
+        # read ciphertext bytes
+        cbytes = recv_all(server_socket, clen)
+
+        ctx = contexts[c]                              # already reconstructed TenSEAL contexts
+        ct = ts.bfv_tensor_from(ctx, cbytes)          # rebuild BFVTensor
         row_cts.append(ct)
     deltat.append(row_cts)
 
