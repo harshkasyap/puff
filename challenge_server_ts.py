@@ -220,8 +220,8 @@ def f(c):
     '''
 
     # send rows and cols as 4-byte big-endian ints
-    header = struct.pack(">II", rows, cols)
-    send_all(client_socket, header)
+    #header = struct.pack(">II", rows, cols)
+    #send_all(client_socket, header)
     
     # now stream each ciphertext: [4-byte length][ciphertext bytes]
     for row in deltat:
