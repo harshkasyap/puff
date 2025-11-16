@@ -248,6 +248,7 @@ blob = recv_all(client_socket, length)
 payload = pickle.loads(blob)
 '''
 
+'''
 length = int.from_bytes(recv_all(client_socket, 8), "big")
 compressed = recv_all(client_socket, length)
 blob = zlib.decompress(compressed)
@@ -288,7 +289,6 @@ for r in range(m):
         ct = ts.bfv_tensor_from(ctx, cbytes)          # rebuild BFVTensor
         row_cts.append(ct)
     deltat.append(row_cts)
-'''
 
 DELTAT = []
 for j in range(m):  # for each row
