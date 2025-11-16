@@ -24,6 +24,16 @@ from ast import literal_eval
 
 from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair
 
+import struct
+
+def send_all(sock, data: bytes):
+    view = memoryview(data)
+    while len(view):
+        sent = sock.send(view)
+        if sent == 0:
+            raise ConnectionError("socket connection broken")
+        view = view[sent:]
+
 import tenseal as ts
 
 def writeInEncFile(enc_vec, filename):
@@ -193,7 +203,8 @@ def f(c):
     # deltat is list of m rows, each row is list of len(contexts) BFV tensors (sum_ct)
     rows = len(deltat)
     cols = len(deltat[0]) if rows>0 else 0
-    
+
+    '''
     # build a flat list of serialized tensors in row-major order
     cipher_bytes = [ct.serialize() for row in deltat for ct in row]
     
@@ -206,7 +217,19 @@ def f(c):
     blob = pickle.dumps(payload, protocol=4)   # or higher
     client_socket.sendall(len(blob).to_bytes(8, "big"))   # 8 bytes length prefix
     client_socket.sendall(blob)
+    '''
 
+    # send rows and cols as 4-byte big-endian ints
+    header = struct.pack(">II", rows, cols)
+    send_all(client_socket, header)
+    
+    # now stream each ciphertext: [4-byte length][ciphertext bytes]
+    for row in deltat:
+        for ct in row:
+            b = ct.serialize()              # bytes from TenSEAL
+            length = len(b)
+            send_all(client_socket, length.to_bytes(4, "big"))
+            send_all(client_socket, b)
 
 
     '''payload_cipher = pickle.dumps({
