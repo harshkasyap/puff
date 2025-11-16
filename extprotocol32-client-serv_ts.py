@@ -555,6 +555,7 @@ for j in range(n):
 g_serialized = base64.b64encode(group.serialize(g)).decode() # serialize g and convert to base64
 v_serialized = base64.b64encode(group.serialize(v)).decode() # serialize g and convert to base64
 
+'''
 U = []
 for i in range(m):
     U.append(base64.b64encode(group.serialize(u[i])).decode())
@@ -591,7 +592,7 @@ print("v", v)
 print("v1", v1)
 
 print("SIG ",  new)
-
+'''
 #loaded_SS = [
 #    [point["x"], point["y"]]
 #    for point in loaded_serialized_points
