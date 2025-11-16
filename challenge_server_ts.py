@@ -24,6 +24,7 @@ from ast import literal_eval
 
 from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair
 
+import zlib
 import struct
 
 def send_all(sock, data: bytes):
@@ -222,7 +223,8 @@ def f(c):
     # send rows and cols as 4-byte big-endian ints
     #header = struct.pack(">II", rows, cols)
     #send_all(client_socket, header)
-    
+
+    '''
     # now stream each ciphertext: [4-byte length][ciphertext bytes]
     for row in deltat:
         for ct in row:
@@ -230,7 +232,18 @@ def f(c):
             length = len(b)
             send_all(client_socket, length.to_bytes(4, "big"))
             send_all(client_socket, b)
+    '''
 
+    payload = {
+        "rows": rows,
+        "cols": cols,
+        "ciphers": [ct.serialize() for row in deltat for ct in row],
+    }
+    blob = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
+    compressed = zlib.compress(blob, level=3)  # low/medium level to avoid big CPU cost
+    
+    client_socket.sendall(len(compressed).to_bytes(8, "big"))
+    client_socket.sendall(compressed)
 
     '''payload_cipher = pickle.dumps({
             "ciphertext": deltat,
