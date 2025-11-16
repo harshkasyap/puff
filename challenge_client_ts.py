@@ -21,6 +21,7 @@ from typing import List, Tuple
     
 from ast import literal_eval
 
+import zlib
 import struct
 
 def recv_all(sock, n: int) -> bytes:
@@ -239,10 +240,17 @@ for j in range(m):
         enc_vecs.append(ct)
     DELTAT.append(enc_vecs)
 '''
+
 '''
 length_bytes = recv_all(client_socket, 8)
 length = int.from_bytes(length_bytes, "big")
 blob = recv_all(client_socket, length)
+payload = pickle.loads(blob)
+'''
+
+length = int.from_bytes(recv_all(sock, 8), "big")
+compressed = recv_all(sock, length)
+blob = zlib.decompress(compressed)
 payload = pickle.loads(blob)
 
 rows = payload["rows"]
@@ -261,11 +269,11 @@ for r in range(rows):
         ct = ts.bfv_tensor_from(ctx, b)  # reconstruct BFVTensor
         row_cts.append(ct)
     deltat.append(row_cts)
-'''
 
 #hdr = recv_all(client_socket, 8)
 #rows, cols = struct.unpack(">II", hdr)
 
+'''
 deltat = []
 for r in range(m):
     row_cts = []
@@ -280,6 +288,7 @@ for r in range(m):
         ct = ts.bfv_tensor_from(ctx, cbytes)          # rebuild BFVTensor
         row_cts.append(ct)
     deltat.append(row_cts)
+'''
 
 DELTAT = []
 for j in range(m):  # for each row
