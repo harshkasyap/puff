@@ -248,8 +248,8 @@ blob = recv_all(client_socket, length)
 payload = pickle.loads(blob)
 '''
 
-length = int.from_bytes(recv_all(sock, 8), "big")
-compressed = recv_all(sock, length)
+length = int.from_bytes(recv_all(client_socket, 8), "big")
+compressed = recv_all(client_socket, length)
 blob = zlib.decompress(compressed)
 payload = pickle.loads(blob)
 
