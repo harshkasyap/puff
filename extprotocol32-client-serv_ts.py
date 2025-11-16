@@ -712,8 +712,7 @@ if(EMT != loaded_EMT):
 
 #MAS.append(sum1+sum2)
 
-exit(0)
-
+#exit(0)
 
 #ch = [ 0,  0, 1, 1, 1, 1, 1, 1,  0,  0, 1, 1,  0, 1,  0, 1, 1,  0,  0, 1, 1, 1,  0,  0, 1,  0, 1,  0,  0, 1, 1, 1]
 # ch is the n-bit challenge
@@ -785,8 +784,15 @@ bh = [] #bh contains encoded (reformatted) challenges
 for i in range(n):
     bh.append(PC[i]%p)
 
-#print("bh[0]",bh[0], bc[1])
- 
+bh_residues = []                   # holds residues for this row across all moduli
+for mod in moduli:                  # for each modulus
+    mod_res = [x % mod for x in bh]   # residue vector for this modulus
+    bh_residues.append(mod_res)
+
+bh_enc_vecs = []
+for i, context in enumerate(contexts):
+    bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
+    bh_enc_vecs.append(bh_enc_vec)
     
 print("server compute")
 
@@ -795,6 +801,7 @@ t1 = time.time()
 # m = 142 paper q = m, paper t = n
 #delta = [] # encrypted response
 deltat = [] # encrypted response based on EMT
+'''
 for j in range(m):
     #c = EM[j][0]*PC[0]
     ct = EMT[j][0]*bh[0]
@@ -805,17 +812,28 @@ for j in range(m):
         #ct = ct + EMT[j][i]*PC[i]
     #delta.append(c)
     deltat.append(ct)
+'''
+'''
+bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
+'''
+
+for j in range(m):
+    delt = []
+    for i, context in enumerate(contexts):
+        ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+        sum_ct = ct.sum()      # homomorphic sum across all slots
+        delt.append(sum_ct)
+    deltat.append(delt)
+
 print("time to multiply model and bh ", time.time() - t1)
 
-
-
 #SIG = SS[0] ** PC[0] # combined signature
+
 SIG = SS[0] ** bh[0] # combined signature
 for i in range(1,n):
     #sigv =  (SS[i] ** PC[i])
     sigv =  (SS[i] ** bh[i])
     SIG = SIG*sigv
-
 
 #t11 = time.time()
 #print("server time for encrypted response calculation", t11-t1)
@@ -825,7 +843,7 @@ for i in range(1,n):
 t2 = time.time()
 print("server compute time", t2-t1)
 
-ST.append(t2-t1)
+#ST.append(t2-t1)
 
 #verification 
     
@@ -844,12 +862,28 @@ t3 = time.time()
 #         ns1 = ns1 + PC[j]*T[i][j]
 #     print("plaintext sum", ns, decode(ns1 % p) )
 
+'''
 DELTAT = [] # decryption of server's respponse based on T
 for i in range(m):
     DELTAT.append(priv_key.decrypt(deltat[i]))
+'''
 
+DELTAT = []
+for j in range(m):  # for each row
+    row_residues = []
+    for i, mod in enumerate(moduli):  # for each modulus/context
+        # decrypt ciphertext under its context
+        decrypted_val = deltat[j][i].decrypt().tolist()
+        value = int(decrypted_val) % mod
+        row_residues.append(value)
 
-#print(DELTA)
+    # Combine residues via CRT if you used multiple moduli
+    combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
+    reconstructed = int(combined)
+
+    DELTAT.append(reconstructed)
+
+#print("DELTAT[0]", DELTAT[0])
 # print(decode(DELTAT[0]), decode(DELTAT[1]))
 # exit(0)
 
@@ -859,10 +893,17 @@ for i in range(n):
     
     
 #vr = GH[0] ** PC[0]
+
 vr = GH[0] ** bh[0]
 for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
+
+'''
+vr = GH[0] ** sig_exps[0]
+for i in range(1, n):
+    vr = vr * (GH[i] ** sig_exps[i])
+'''
 
 #agm_a = u[0]**DELTA[0]
 agm_a = u[0]**DELTAT[0]
@@ -892,6 +933,22 @@ vrf = vr*agm_a
 rhs = pair(vrf, v) # right hand side value of the verification 
 lhs = pair(SIG, g) # left hand side value of the verification 
 
+# compute expected (cleartext) inner product mod order to verify homomorphic result
+'''
+expected_exps = []
+for i in range(m):
+    s = 0
+    for j in range(n):
+        # TT is cleartext floats(before encoding). If T stores encoded values in Zp, adapt:
+        s += (T[i][j] * bh[j])  # adjust exactly to your encoding method
+    expected_exps.append(s)
+
+print("expected_exps[:5]:", expected_exps[:5])
+print("DELTAT[:5]:", DELTAT[:5])
+print("DELTAT_plain[:5]:", DELTAT_plain[:5])
+#print("sig_exps[:10]:", sig_exps[:10])
+print("lhs, rhs:", lhs, rhs)
+'''
 
 # if (vrf**alpha != SIG):
 #     print("vrf, SIG mismatch")
@@ -903,8 +960,7 @@ if (lhs != rhs ):
 #if(lhs == rhs):
     #print("lhs rhs match")
 
-print("Linear authenticator match")
-
+print("Linear authenticator matched")
 
 R_f = []
 for i in range(m):
@@ -927,7 +983,4 @@ t4 = time.time()
 
 
 print("verification time", t4-t3)
-VT.append(t4-t3)
-
-
-
+#VT.append(t4-t3)
