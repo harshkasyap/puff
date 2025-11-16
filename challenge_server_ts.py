@@ -224,7 +224,6 @@ def f(c):
     #header = struct.pack(">II", rows, cols)
     #send_all(client_socket, header)
 
-    '''
     # now stream each ciphertext: [4-byte length][ciphertext bytes]
     for row in deltat:
         for ct in row:
@@ -232,8 +231,8 @@ def f(c):
             length = len(b)
             send_all(client_socket, length.to_bytes(4, "big"))
             send_all(client_socket, b)
-    '''
 
+    '''
     payload = {
         "rows": rows,
         "cols": cols,
@@ -244,7 +243,7 @@ def f(c):
     
     client_socket.sendall(len(compressed).to_bytes(8, "big"))
     client_socket.sendall(compressed)
-
+    '''
     '''payload_cipher = pickle.dumps({
             "ciphertext": deltat,
     })'''
