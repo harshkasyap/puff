@@ -819,12 +819,11 @@ for j in range(m):
 bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 '''
 
-'''
+
 pc_enc_vecs = []
 for i, context in enumerate(contexts):
     pc_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(PC), True)
     pc_enc_vecs.append(pc_enc_vec)
-'''
 
 for j in range(m):
     delt = []
