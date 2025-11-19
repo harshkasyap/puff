@@ -170,8 +170,8 @@ if not ok:
     raise RuntimeError(f"Selected moduli not pairwise coprime: moduli[{i}],moduli[{j}] share gcd {g}")
 '''
 
-#moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737, 1099547508737, 1099547508737, 1099547508737]
-moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
+moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737]
+#moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
 
 M = prod(moduli)
 print("Total modulus product M bitlength:", M.bit_length())
@@ -780,7 +780,7 @@ for j in range(m):
 #     else:
 #         bh.append(PC[i])
 
-
+'''
 bh = [] #bh contains encoded (reformatted) challenges
 
 for i in range(n):
@@ -795,7 +795,7 @@ bh_enc_vecs = []
 for i, context in enumerate(contexts):
     bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
     bh_enc_vecs.append(bh_enc_vec)
-    
+'''    
 print("server compute")
 
 t1 = time.time()
@@ -819,6 +819,7 @@ for j in range(m):
 bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 '''
 
+'''
 for j in range(m):
     delt = []
     for i, context in enumerate(contexts):
@@ -826,15 +827,48 @@ for j in range(m):
         sum_ct = ct.sum()      # homomorphic sum across all slots
         delt.append(sum_ct)
     deltat.append(delt)
+'''
+
+
+pc_enc_vecs = []
+for i, context in enumerate(contexts):
+    pc_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(PC), True)
+    pc_enc_vecs.append(pc_enc_vec)
+
+for j in range(m):
+    delt = []
+    for i, context in enumerate(contexts):
+        ct = EMT[j][i] * pc_enc_vecs[i] #bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+        sum_ct = ct.sum()      # homomorphic sum across all slots
+        delt.append(sum_ct)
+    deltat.append(delt)
 
 print("time to multiply model and bh ", time.time() - t1)
 
+'''
 #SIG = SS[0] ** PC[0] # combined signature
 
 SIG = SS[0] ** bh[0] # combined signature
 for i in range(1,n):
     #sigv =  (SS[i] ** PC[i])
     sigv =  (SS[i] ** bh[i])
+    SIG = SIG*sigv
+'''
+
+#SIG = SS[0] ** PC[0] # combined signature
+if PC[0] == 1:
+    SIG = SS[0]
+else:
+    SIG = -SS[0]
+
+#SIG = SS[0] ** bh[0] # combined signature
+for i in range(1,n):
+    #sigv =  (SS[i] ** PC[i])
+    if PC[i] == 1:
+        sigv = SS[i]
+    else:
+        sigv = -SS[i]
+    #sigv =  (SS[i] ** bh[i])
     SIG = SIG*sigv
 
 #t11 = time.time()
@@ -895,11 +929,28 @@ for i in range(n):
     
     
 #vr = GH[0] ** PC[0]
-
+'''
 vr = GH[0] ** bh[0]
 for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
+'''
+
+#working with +1/-1 challenges
+if PC[0] == 1:
+    vr = GH[0]
+else:
+    vr = -GH[0]
+
+#vr = GH[0] ** bh[0]
+for i in range(1, n):
+    #vr = vr * ( GH[i] ** PC[i])
+    if PC[i] == 1:
+        vrg = GH[i]
+    else:
+        vrg = -GH[i]
+    vr = vr * vrg
+    #vr = vr * ( GH[i] ** bh[i])
 
 '''
 vr = GH[0] ** sig_exps[0]
