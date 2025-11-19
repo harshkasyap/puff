@@ -812,7 +812,7 @@ bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 for j in range(m):
     delt = []
     for i, context in enumerate(contexts):
-        ct = EMT[j][i] * PC[i] #bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+        ct = EMT[j][i] * PC #bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
         sum_ct = ct.sum()      # homomorphic sum across all slots
         delt.append(sum_ct)
     deltat.append(delt)
