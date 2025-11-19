@@ -161,14 +161,16 @@ def decode(x):
     else:
         #print("decode 2nd", x/tao )
         return x/tao
-
+'''
 moduli = choose_moduli_for_target(p, 8192, 40, 8)
 ok, bad = moduli_pairwise_coprime(moduli)
 if not ok:
     i,j,g = bad
     raise RuntimeError(f"Selected moduli not pairwise coprime: moduli[{i}],moduli[{j}] share gcd {g}")
 print(moduli)
+'''
 
+moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737]
 #moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737, 1099547508737, 1099547508737, 1099547508737]
 #moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
 
