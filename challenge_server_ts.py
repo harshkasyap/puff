@@ -84,7 +84,8 @@ def f(c):
 
     #print("Restored:", P_restored)
 
-    moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
+    moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737]
+    #moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
     contexts = []
     for index in range(8):
         data = readfromEncFile("out/public_context"+str(index))
@@ -135,12 +136,13 @@ def f(c):
     #print("server computation on reconstructed ciphertext")
     '''
 
+    '''
     bh = [] #bh contains encoded (reformatted) challenges
 
     for i in range(n):
         bh.append(c[i]%p)
         #print(c[i]%p)
-
+    '''
     '''
     deltat = [] # encrypted response based on EMT
     for j in range(m):
@@ -149,7 +151,7 @@ def f(c):
             ct = ct + EMT[j][i]*bh[i]
         deltat.append(ct)
     '''
-
+    '''
     bh_residues = []                   # holds residues for this row across all moduli
     for mod in moduli:                  # for each modulus
         mod_res = [x % mod for x in bh]   # residue vector for this modulus
@@ -159,24 +161,49 @@ def f(c):
     for i, context in enumerate(contexts):
         bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
         bh_enc_vecs.append(bh_enc_vec)
+    '''
+
+    pc_enc_vecs = []
+    for i, context in enumerate(contexts):
+        pc_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(c), True)
+        pc_enc_vecs.append(pc_enc_vec)
     
     deltat = []
     for j in range(m):
         delt = []
         for i, context in enumerate(contexts):
-            ct = EMT[j][i] * bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
-            sum_ct = ct.sum()      # homomorphic sum across all slots
+            ct = EMT[j][i] * pc_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+            #sum_ct = ct.sum()      # homomorphic sum across all slots
+            sum_ct = ct.sum_()      # homomorphic sum across all slots
             #writeInEncFile(sum_ct.serialize(), "out/sum_ct"+"_"+str(i)+"_"+str(j))
             delt.append(sum_ct)
         deltat.append(delt)
 
    # print("SSD")
     #print(SSD[0])
+
+    '''
     SIG = SSD[0]**bh[0] # combined signature
     for i in range(1,n):
         sigv =  (SSD[i] ** bh[i])
         SIG = SIG*sigv
+    '''
 
+    if PC[0] == 1:
+        SIG = SS[0]
+    else:
+        SIG = -SS[0]
+    
+    #SIG = SS[0] ** bh[0] # combined signature
+    for i in range(1,n):
+        #sigv =  (SS[i] ** PC[i])
+        if PC[i] == 1:
+            sigv = SS[i]
+        else:
+            sigv = -SS[i]
+        #sigv =  (SS[i] ** bh[i])
+        SIG = SIG*sigv
+    
     #print("SIG", SIG)
     SIG_serialized = base64.b64encode(group.serialize(SIG)).decode() # serialize g and convert to base64
     #result =[deltat, SIG]
