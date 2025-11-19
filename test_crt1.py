@@ -900,13 +900,30 @@ GH = []
 for i in range(n):
     GH.append(group.hash(str("PID")+str(i), G1) )
     
-    
+   
 #vr = GH[0] ** PC[0]
-
+'''
 vr = GH[0] ** bh[0]
 for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
+'''
+
+#working with +1/-1 challenges
+if PC[0] == 1:
+    vr = GH[0]
+else:
+    vr = -GH[0]
+
+#vr = GH[0] ** bh[0]
+for i in range(1, n):
+    #vr = vr * ( GH[i] ** PC[i])
+    if PC[i] == 1:
+        vrg = GH[i]
+    else:
+        vrg = -GH[i]
+    vr = vr * vrg
+    #vr = vr * ( GH[i] ** bh[i])
 
 '''
 vr = GH[0] ** sig_exps[0]
