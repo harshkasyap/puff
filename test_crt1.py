@@ -786,6 +786,16 @@ for i, context in enumerate(contexts):
     bh_enc_vecs.append(bh_enc_vec)
 '''
 
+pc_residues = []                   # holds residues for this row across all moduli
+for mod in moduli:                  # for each modulus
+    mod_res = [x % mod for x in PC]   # residue vector for this modulus
+    pc_residues.append(mod_res)
+
+pc_enc_vecs = []
+for i, context in enumerate(contexts):
+    pc_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(pc_residues[i]), True)
+    pc_enc_vecs.append(pc_enc_vec)
+
 print("server compute")
 
 t1 = time.time()
@@ -809,10 +819,12 @@ for j in range(m):
 bh_enc = ts.bfv_tensor(ctx, ts.plain_tensor(bh), True)
 '''
 
+'''
 pc_enc_vecs = []
 for i, context in enumerate(contexts):
     pc_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(PC), True)
     pc_enc_vecs.append(pc_enc_vec)
+'''
 
 for j in range(m):
     delt = []
