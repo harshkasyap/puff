@@ -100,7 +100,8 @@ pub_key = keys["public_key"]
 priv_key = keys["private_key"]
 '''
 
-moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
+moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737]
+#moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
 contexts = []
 for index in range(8):
     data = readfromEncFile("out/public_context"+str(index))
@@ -334,12 +335,14 @@ u = []
 for pt in u_points: # There are total m points
     u.append( group.deserialize(base64.b64decode(pt)) )
 
-
+'''
 bh = [] #bh contains encoded (reformatted) challenges
 
 for i in range(n):
     bh.append(PC[i]%p)
     #print(c[i]%p)
+'''
+
 
 '''DELTAT = [] # decryption of server's respponse based on T
 for i in range(m):
@@ -359,10 +362,28 @@ for i in range(n):
 
 
 #vr = GH[0] ** PC[0]
+'''
 vr = GH[0] ** bh[0]
 for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
+'''
+
+#working with +1/-1 challenges
+if PC[0] == 1:
+    vr = GH[0]
+else:
+    vr = -GH[0]
+
+#vr = GH[0] ** bh[0]
+for i in range(1, n):
+    #vr = vr * ( GH[i] ** PC[i])
+    if PC[i] == 1:
+        vrg = GH[i]
+    else:
+        vrg = -GH[i]
+    vr = vr * vrg
+    #vr = vr * ( GH[i] ** bh[i])
 
 #agm_a = u[0]**DELTA[0]
 agm_a = u[0]**DELTAT[0]
