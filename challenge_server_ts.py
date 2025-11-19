@@ -190,17 +190,17 @@ def f(c):
     '''
 
     if c[0] == 1:
-        SIG = SS[0]
+        SIG = SSD[0]
     else:
-        SIG = -SS[0]
+        SIG = -SSD[0]
     
     #SIG = SS[0] ** bh[0] # combined signature
     for i in range(1,n):
         #sigv =  (SS[i] ** c[i])
         if c[i] == 1:
-            sigv = SS[i]
+            sigv = SSD[i]
         else:
-            sigv = -SS[i]
+            sigv = -SSD[i]
         #sigv =  (SS[i] ** bh[i])
         SIG = SIG*sigv
     
