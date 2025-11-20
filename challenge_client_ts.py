@@ -276,6 +276,36 @@ for r in range(rows):
 #rows, cols = struct.unpack(">II", hdr)
 
 '''
+
+# 1. Read 8-byte length
+hdr = recv_all(sock, 8)
+L = int.from_bytes(hdr, "big")
+
+# 2. Read payload
+compressed = recv_all(sock, L)
+
+# 3. Decompress + unpickle
+blob = zlib.decompress(compressed)
+payload = pickle.loads(blob)
+
+rows = payload["rows"]
+cols = payload["cols"]
+cipher_bytes = payload["ciphers"]
+
+# 4. Reconstruct matrix of BFV tensors
+deltat = []
+idx = 0
+for r in range(rows):
+    row = []
+    for c in range(cols):
+        ct_bytes = cipher_bytes[idx]
+        idx += 1
+        ct = ts.bfv_tensor_from(contexts[c], ct_bytes)
+        row.append(ct)
+    deltat.append(row)
+
+'''
+#it was last working
 deltat = []
 for r in range(m):
     row_cts = []
@@ -290,6 +320,7 @@ for r in range(m):
         ct = ts.bfv_tensor_from(ctx, cbytes)          # rebuild BFVTensor
         row_cts.append(ct)
     deltat.append(row_cts)
+'''
 
 DELTAT = []
 for j in range(m):  # for each row
