@@ -282,10 +282,12 @@ hdr = recv_all(client_socket, 8)
 L = int.from_bytes(hdr, "big")
 
 # 2. Read payload
-compressed = recv_all(client_socket, L)
+#compressed = recv_all(client_socket, L)
 
 # 3. Decompress + unpickle
-blob = zlib.decompress(compressed)
+#blob = zlib.decompress(compressed)
+
+blob = recv_all(client_socket, L)
 payload = pickle.loads(blob)
 
 rows = payload["rows"]
