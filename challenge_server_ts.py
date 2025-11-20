@@ -232,7 +232,7 @@ def f(c):
     rows = len(deltat)
     cols = len(deltat[0]) if rows>0 else 0
 
-    '''
+    
     # build a flat list of serialized tensors in row-major order
     cipher_bytes = [ct.serialize() for row in deltat for ct in row]
     
@@ -242,15 +242,17 @@ def f(c):
         "ciphers": cipher_bytes,   # list of bytes objects
     }
     
-    blob = pickle.dumps(payload, protocol=4)   # or higher
-    client_socket.sendall(len(blob).to_bytes(8, "big"))   # 8 bytes length prefix
-    client_socket.sendall(blob)
-    '''
+    blob = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
+    compressed = zlib.compress(blob, level=3)   # 1–3: good trade-off speed/size
+    length_prefix = len(compressed).to_bytes(8, "big")
+    send_all(client_socket, length_prefix + compressed)
+    
 
     # send rows and cols as 4-byte big-endian ints
     #header = struct.pack(">II", rows, cols)
     #send_all(client_socket, header)
 
+    '''
     # now stream each ciphertext: [4-byte length][ciphertext bytes]
     for row in deltat:
         for ct in row:
@@ -258,7 +260,8 @@ def f(c):
             length = len(b)
             send_all(client_socket, length.to_bytes(4, "big"))
             send_all(client_socket, b)
-
+    '''
+    
     '''
     payload = {
         "rows": rows,
