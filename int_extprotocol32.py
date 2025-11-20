@@ -27,7 +27,7 @@ print(order)
 
 
 p = util.getprimeover(160) #p is a 160-bit prime
-
+print("p", p)
 tao = 2 ** 90
 
 if p - tao < 0:
