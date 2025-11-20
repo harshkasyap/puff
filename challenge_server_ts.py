@@ -243,9 +243,12 @@ def f(c):
     }
     
     blob = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
-    compressed = zlib.compress(blob, level=3)   # 1–3: good trade-off speed/size
-    length_prefix = len(compressed).to_bytes(8, "big")
-    send_all(client_socket, length_prefix + compressed)
+    send_all(client_socket, len(blob).to_bytes(8, "big"))
+    send_all(client_socket, blob)
+
+    #compressed = zlib.compress(blob, level=3)   # 1–3: good trade-off speed/size
+    #length_prefix = len(compressed).to_bytes(8, "big")
+    #send_all(client_socket, length_prefix + compressed)
     
 
     # send rows and cols as 4-byte big-endian ints
