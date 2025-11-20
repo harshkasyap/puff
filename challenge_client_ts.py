@@ -278,11 +278,11 @@ for r in range(rows):
 '''
 
 # 1. Read 8-byte length
-hdr = recv_all(sock, 8)
+hdr = recv_all(client_socket, 8)
 L = int.from_bytes(hdr, "big")
 
 # 2. Read payload
-compressed = recv_all(sock, L)
+compressed = recv_all(client_socket, L)
 
 # 3. Decompress + unpickle
 blob = zlib.decompress(compressed)
