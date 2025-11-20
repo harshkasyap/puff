@@ -917,8 +917,14 @@ for j in range(m):  # for each row
 
     # Combine residues via CRT if you used multiple moduli
     combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
-    reconstructed = int(combined)
+    # reconstructed = int(combined)
 
+    if combined > M // 2:
+        s_int = combined - M
+    else:
+        s_int = combined
+
+    reconstructed = int(s_int)
     DELTAT.append(reconstructed)
 
 #print("DELTAT[0]", DELTAT[0])
@@ -960,10 +966,29 @@ for i in range(1, n):
     vr = vr * (GH[i] ** sig_exps[i])
 '''
 
+'''
 #agm_a = u[0]**DELTA[0]
 agm_a = u[0]**DELTAT[0]
 for i in range(1, m):
     te = u[i]**DELTAT[i]
+    agm_a = agm_a*te
+vrf = vr*agm_a
+'''
+
+if DELTAT[0] >= 0:
+    #print(">=0 ", DELTAT[0])
+    agm_a = u[0]**DELTAT[0] 
+else:
+    deln = -u[0]
+    #print("< 0 ", DELTAT[0])
+    agm_a = deln**(abs(DELTAT[0]))
+
+for i in range(1, m):
+    if DELTAT[i] >= 0:
+        te = u[i]**DELTAT[i]
+    else:
+        teneg = -u[i]
+        te = teneg**(abs(DELTAT[i]))
     agm_a = agm_a*te
 vrf = vr*agm_a
 
