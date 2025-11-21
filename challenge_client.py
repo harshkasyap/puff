@@ -189,12 +189,13 @@ u = []
 for pt in u_points: # There are total m points
     u.append( group.deserialize(base64.b64decode(pt)) )
 
-
+'''
 bh = [] #bh contains encoded (reformatted) challenges
 
 for i in range(n):
     bh.append(PC[i]%p)
     #print(c[i]%p)
+'''
 
 '''DELTAT = [] # decryption of server's respponse based on T
 for i in range(m):
@@ -212,17 +213,56 @@ GH = []
 for i in range(n):
     GH.append(group.hash(str("PID")+str(i), G1) )
 
-
+'''
 #vr = GH[0] ** PC[0]
 vr = GH[0] ** bh[0]
 for i in range(1, n):
     #vr = vr * ( GH[i] ** PC[i])
     vr = vr * ( GH[i] ** bh[i])
+'''
 
+#vr = GH[0] ** PC[0] 
+#working with +1/-1 challenges
+if PC[0] == 1:
+    vr = GH[0]
+else:
+    vr = -GH[0]
+
+#vr = GH[0] ** bh[0]
+for i in range(1, n):
+    #vr = vr * ( GH[i] ** PC[i])
+    if PC[i] == 1:
+        vrg = GH[i]
+    else:
+        vrg = -GH[i]
+    vr = vr * vrg
+    #vr = vr * ( GH[i] ** bh[i])
+
+'''
 #agm_a = u[0]**DELTA[0]
 agm_a = u[0]**DELTAT[0]
 for i in range(1, m):
     te = u[i]**DELTAT[i]
+    agm_a = agm_a*te
+vrf = vr*agm_a
+'''
+
+if DELTAT[0] >= 0:
+    #print(">=0 ", DELTAT[0])
+    agm_a = u[0]**DELTAT[0] 
+else:
+    deln = -u[0]
+    #print("< 0 ", DELTAT[0])
+    agm_a = deln**(abs(DELTAT[0]))
+
+
+
+for i in range(1, m):
+    if DELTAT[i] >= 0:
+        te = u[i]**DELTAT[i]
+    else:
+        teneg = -u[i]
+        te = teneg**(abs(DELTAT[i]))
     agm_a = agm_a*te
 vrf = vr*agm_a
 
