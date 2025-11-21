@@ -155,7 +155,11 @@ def f(c):
     client_socket.sendall(len(cipher_data).to_bytes(4, 'big'))
     client_socket.sendall(cipher_data)
 
-
+    payload_size = len(cipher_data)
+    header_size = 4  # because you're sending 4-byte length prefix
+    total_sent = header_size + payload_size
+    
+    print(f"[Paillier] Header: {header_size} bytes, Payload: {payload_size} bytes, Total sent: {total_sent} bytes")
 
 
     '''payload_cipher = pickle.dumps({
