@@ -246,11 +246,11 @@ def f(c):
     send_all(client_socket, len(blob).to_bytes(8, "big"))
     send_all(client_socket, blob)
 
-    payload_size = len(cipher_data)
-    header_size = 4  # because you're sending 4-byte length prefix
+    payload_size = len(blob)
+    header_size = 8  # because you use 8-byte length prefix
     total_sent = header_size + payload_size
-
-    print(f"[Paillier] Header: {header_size} bytes, Payload: {payload_size} bytes, Total sent: {total_sent} bytes")
+    
+    print(f"[BFV] Header: {header_size} bytes, Payload: {payload_size} bytes, Total sent: {total_sent} bytes")
 
     #compressed = zlib.compress(blob, level=3)   # 1–3: good trade-off speed/size
     #length_prefix = len(compressed).to_bytes(8, "big")
