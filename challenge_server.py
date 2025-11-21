@@ -92,26 +92,44 @@ def f(c):
 
     #print("server computation on reconstructed ciphertext")
 
+    '''
     bh = [] #bh contains encoded (reformatted) challenges
 
     for i in range(n):
         bh.append(c[i]%p)
         #print(c[i]%p)
-
+    '''
+    
     deltat = [] # encrypted response based on EMT
     for j in range(m):
-        ct = EMT[j][0]*bh[0]
+        ct = EMT[j][0]*c[0]
         for i in range(1,n):
-            ct = ct + EMT[j][i]*bh[i]
+            ct = ct + EMT[j][i]*c[i]
         deltat.append(ct)
 
 
-
+    '''
    # print("SSD")
     #print(SSD[0])
     SIG = SSD[0]**bh[0] # combined signature
     for i in range(1,n):
         sigv =  (SSD[i] ** bh[i])
+        SIG = SIG*sigv
+    '''
+    
+    if c[0] == 1:
+        SIG = SSD[0]
+    else:
+        SIG = -SSD[0]
+    
+    #SIG = SS[0] ** bh[0] # combined signature
+    for i in range(1,n):
+        #sigv =  (SS[i] ** PC[i])
+        if c[i] == 1:
+            sigv = SSD[i]
+        else:
+            sigv = -SSD[i]
+        #sigv =  (SS[i] ** bh[i])
         SIG = SIG*sigv
 
     #print("SIG", SIG)
