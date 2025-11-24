@@ -99,7 +99,8 @@ def f(c):
         bh.append(c[i]%p)
         #print(c[i]%p)
     '''
-    
+
+    t1 = time.time()
     deltat = [] # encrypted response based on EMT
     for j in range(m):
         ct = EMT[j][0]*c[0]
@@ -107,6 +108,7 @@ def f(c):
             ct = ct + EMT[j][i]*c[i]
         deltat.append(ct)
 
+    print("time to multiply model and PC ", time.time() - t1)
 
     '''
    # print("SSD")
