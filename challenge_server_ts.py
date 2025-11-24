@@ -163,6 +163,7 @@ def f(c):
         bh_enc_vecs.append(bh_enc_vec)
     '''
 
+    t1 = time.time()
     pc_enc_vecs = []
     for i, context in enumerate(contexts):
         pc_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(c), True)
@@ -179,6 +180,7 @@ def f(c):
             delt.append(sum_ct)
         deltat.append(delt)
 
+    print("time to multiply model and PC ", time.time() - t1)
    # print("SSD")
     #print(SSD[0])
 
