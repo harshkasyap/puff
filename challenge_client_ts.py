@@ -2,79 +2,46 @@ import socket
 
 import os
 
+
 import sys
 import phe
 import time
 import random
 import math
 
+
+
 import pickle
 import json
 import base64
 
+
 from phe import paillier
 from phe import util
 
-import sympy
-from math import prod, gcd
-from typing import List, Tuple
     
 from ast import literal_eval
+
+from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair
 
 import zlib
 import struct
 
-def recv_all(sock, n: int) -> bytes:
-    data = bytearray()
-    while len(data) < n:
-        packet = sock.recv(n - len(data))
-        if not packet:
+def send_all(sock, data: bytes):
+    view = memoryview(data)
+    while len(view):
+        sent = sock.send(view)
+        if sent == 0:
             raise ConnectionError("socket connection broken")
-        data.extend(packet)
-    return bytes(data)
-
-from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G1,GT,pair
-            
-
-n= 32
-m = 32
-p = 1381819329670992382493016885514578963637936154479
-tao = 2 ** 90
-
-
-def decode(x):
-    if x >= p/2:
-        return (x - p)/tao
-    else:
-        return x/tao
-
+        view = view[sent:]
 
 import tenseal as ts
 
-# ---------- math helpers ----------
-def egcd(a: int, b: int) -> Tuple[int,int,int]:
-    if b == 0:
-        return (a, 1, 0)
-    g, x1, y1 = egcd(b, a % b)
-    return (g, y1, x1 - (a // b) * y1)
+def writeInEncFile(enc_vec, filename):
+    ser_vec = base64.b64encode(enc_vec)
 
-def inv_mod(a: int, m: int) -> int:
-    g, x, _ = egcd(a, m)
-    if g != 1:
-        raise ValueError("Inverse does not exist")
-    return x % m
-
-def crt_reconstruct(residues: List[int], moduli: List[int]) -> Tuple[int, int]:
-    """Reconstruct x mod M, where M = product(moduli). Returns (x, M)."""
-    M = 1
-    for m in moduli:
-        M *= m
-    x = 0
-    for (r_i, m_i) in zip(residues, moduli):
-        M_i = M // m_i
-        inv = inv_mod(M_i, m_i)
-        x = (x + (r_i * M_i % M) * inv) % M
-    return x, M
+    with open(filename, 'wb') as f:
+        f.write(ser_vec)
 
 def readfromEncFile(filename):
     with open(filename, 'rb') as f:
@@ -82,423 +49,303 @@ def readfromEncFile(filename):
     
     return base64.b64decode(ser_vec)
 
-# helper to receive exactly n bytes
-def recv_all(sock, n):
-    data = bytearray()
-    while len(data) < n:
-        packet = sock.recv(n - len(data))
-        if not packet:
-            raise ConnectionError("socket closed")
-        data.extend(packet)
-    return bytes(data)
-
-'''
-with open("keys.pkl", "rb") as f:
-    keys = pickle.load(f)
-
-pub_key = keys["public_key"]
-priv_key = keys["private_key"]
-'''
-
-moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737]
-#moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
-contexts = []
-for index in range(5):
-    data = readfromEncFile("out/public_context"+str(index))
-    context = ts.context_from(data)
-    contexts.append(context)
-
-#print("n =", pub_key.n)
-
-# Compute the challenge c
-PC = []
-for i in range(n):
-    b = random.randrange(0,2)
-    PC.append(1-2*b)
-
-#print(f"Computed challenge: PC = {PC}")
-
-data = pickle.dumps(PC)
-
-
 group = PairingGroup('SS512')
+order = group.order()
+
+#os.system('python3 extprotocol32.py')
+
+# Define the function f(c)
+def f(c):
+    n = 32
+    m = 32
+    p = 1381819329670992382493016885514578963637936154479   ##p is a 160-bit prime public
+   # with open('prime.pkl', 'rb') as file:
+   #     p = pickle.load(file)
+    #print(p)
+
+
+    with open('auth-2.json', 'r') as file:
+        data = json.load(file)
+
+    g = group.deserialize(base64.b64decode(data["generator"]))
+    v = group.deserialize(base64.b64decode(data["ppm"]))
+
+    SS = data["points"]
+    SSD = []
+    for i in range(n):
+        SSD.append( group.deserialize(base64.b64decode(SS[i])) )
+
+    #print("g", g)
+    #print("v", v)
+
+    #SS = [
+    #[point["x"], point["y"]]
+    #for point in loaded_serialized_points]
+
+    #print("Restored:", P_restored)
+
+    moduli = [549756026881, 1099511922689, 1099514314753, 1099530403841, 1099547508737]
+    #moduli = [549756026881, 1099511922689, 2199023288321, 4398047051777, 4398055555073, 4398071955457, 4398088339457, 4398104608769]
+    contexts = []
+    for index in range(5):
+        data = readfromEncFile("out/public_context"+str(index))
+        context = ts.context_from(data)
+        contexts.append(context)
+
+    EMT = []
+    ciphertext_template="out/enc_vec_{}_{}"
+    for j in range(m):
+        enc_vecs = []
+        for i, context in enumerate(contexts):
+            fname = ciphertext_template.format(i, j)
+            if not os.path.exists(fname):
+                raise FileNotFoundError(f"Missing ciphertext file: {fname}")
+            
+            # deserialize bfv tensor into a TenSEAL object
+            ct = ts.bfv_tensor_from(context, readfromEncFile(fname))
+            enc_vecs.append(ct)
+        EMT.append(enc_vecs)
+    
+    '''
+    with open('ctext.pkl', 'rb') as file:
+        EMTP = pickle.load(file)
 
 
 
-# Set up the client for the PUF
-client_socket_puf  = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host_puf = '127.0.0.1'  # Server's IP
-port_puf = 12346  # Same port as the server
+    # for the sake of simplicity server is allowed to acces private key, public key file. But only downloads public key
+    with open("keys.pkl", "rb") as f: 
+        keys = pickle.load(f)
+    
+    pub_key = keys["public_key"]
+    priv_key = keys["private_key"]
+    #print("public key", pub_key.n)
 
-client_socket_puf.connect((host_puf, port_puf))
-print(f"CoNnected to the PUF at {host_puf}:{port_puf}")
+    print("Server has loaded everything")
 
-# Send the challenge to the PUF
-client_socket_puf.sendall(data)
+    #Reconstruct ciphertext
+    EMT = []
+    for j in range(m):
+        TM = []
+        for i in range(n):
+            reconstructed_ciphertext = paillier.EncryptedNumber(pub_key, EMTP[j][i][0], EMTP[j][i][1])
+            TM.append(reconstructed_ciphertext)
+        EMT.append(TM)
 
-# Receive the PUF data c from the PUF
-puf_resp = client_socket_puf.recv(4096)
-AC_f = pickle.loads(puf_resp)
+    #print("decryption", priv_key.decrypt(EMT[0][0]))
 
-print("Recieved PUF response")
-print(AC_f)
-#--------------------------------------
+    #print("server computation on reconstructed ciphertext")
+    '''
 
-# Set up the client
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host = '127.0.0.1'  # Server's IP
-port = 12345  # Same port as the server
+    '''
+    bh = [] #bh contains encoded (reformatted) challenges
 
-client_socket.connect((host, port))
-print(f"Connected to server at {host}:{port}")
-
-
-
-# Send the challenge to the server
-client_socket.sendall(data)
-
-
-# Receive the resposne from Server
-'''
-payload = b''
-while True:
-    chunk = client_socket.recv(4096)
-    if not chunk:
-        break
-    payload += chunk
-
-response_SIG = json.loads(payload.decode('utf-8'))
-
-print(response_SIG)
-
-
-
-
-payload_cipher = b''
-while True:
-    chunk = client_socket.recv(4096)
-    if not chunk:
-        break
-    payload_cipher += chunk
-
-enc_puf_resp = pickle.loads(payload_cipher)["ciphertext"]
-
-#enc_puf_resp = response["ciphertext"]
-print(enc_puf_resp)
-#print(len(enc_puf_resp))
-
-
-SIG = group.deserialize(base64.b64decode(response_SIG["authenticator"]))
-
-print(SIG)
-
-'''
-
-
-def recv_with_length(sock):
-    length_bytes = sock.recv(4)
-    total_length = int.from_bytes(length_bytes, 'big')
-    data = b''
-    while len(data) < total_length:
-        data += sock.recv(total_length - len(data))
-    return data
-
-
-'''
-pickle_payload = recv_with_length(client_socket)
-
-
-recv_ct = pickle.loads(pickle_payload)
-
-
-print("received ciphertext matches with sent ciphertext")
-
-
-#Remdconstruct ciphertext
-
-recon_ct = []
-for item in recv_ct:
-    enc_number = paillier.EncryptedNumber(pub_key, item["ciphertext"], item["exponent"])
-    recon_ct.append(enc_number)
-
-
-
-#decryption of Ciphertext receive from Server
-DELTAT = [priv_key.decrypt(ct) for ct in recon_ct]
-
-
-DELTAT = []
-ciphertext_template="out/sum_ct{}_{}"
-for j in range(m):
-    enc_vecs = []
+    for i in range(n):
+        bh.append(c[i]%p)
+        #print(c[i]%p)
+    '''
+    '''
+    deltat = [] # encrypted response based on EMT
+    for j in range(m):
+        ct = EMT[j][0]*bh[0]
+        for i in range(1,n):
+            ct = ct + EMT[j][i]*bh[i]
+        deltat.append(ct)
+    '''
+    '''
+    bh_residues = []                   # holds residues for this row across all moduli
+    for mod in moduli:                  # for each modulus
+        mod_res = [x % mod for x in bh]   # residue vector for this modulus
+        bh_residues.append(mod_res)
+    
+    bh_enc_vecs = []
     for i, context in enumerate(contexts):
-        fname = ciphertext_template.format(i, j)
-        if not os.path.exists(fname):
-            raise FileNotFoundError(f"Missing ciphertext file: {fname}")
-        
-        # deserialize bfv tensor into a TenSEAL object
-        ct = ts.bfv_tensor_from(context, readfromEncFile(fname))
-        enc_vecs.append(ct)
-    DELTAT.append(enc_vecs)
-'''
+        bh_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(bh_residues[i]), True)
+        bh_enc_vecs.append(bh_enc_vec)
+    '''
 
-'''
-length_bytes = recv_all(client_socket, 8)
-length = int.from_bytes(length_bytes, "big")
-blob = recv_all(client_socket, length)
-payload = pickle.loads(blob)
-'''
+    t1 = time.time()
+    pc_enc_vecs = []
+    for i, context in enumerate(contexts):
+        pc_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(c), True)
+        pc_enc_vecs.append(pc_enc_vec)
+    
+    deltat = []
+    for j in range(m):
+        delt = []
+        for i, context in enumerate(contexts):
+            #ct = EMT[j][i] * pc_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+            #sum_ct = ct.sum()      # homomorphic sum across all slots
+            #sum_ct = ct.sum_()      # homomorphic sum across all slots
+            #writeInEncFile(sum_ct.serialize(), "out/sum_ct"+"_"+str(i)+"_"+str(j))
+            #delt.append(sum_ct)
+            delt.append(EMT[j][i].mul_(c).sum_())
+        deltat.append(delt)
 
-'''
-length = int.from_bytes(recv_all(client_socket, 8), "big")
-compressed = recv_all(client_socket, length)
-blob = zlib.decompress(compressed)
-payload = pickle.loads(blob)
+    print("time to multiply model and PC ", time.time() - t1)
+   # print("SSD")
+    #print(SSD[0])
 
-rows = payload["rows"]
-cols = payload["cols"]
-cipher_bytes = payload["ciphers"]
+    '''
+    SIG = SSD[0]**bh[0] # combined signature
+    for i in range(1,n):
+        sigv =  (SSD[i] ** bh[i])
+        SIG = SIG*sigv
+    '''
 
-# reconstruct 2D list of BFV tensors
-deltat = []
-idx = 0
-for r in range(rows):
-    row_cts = []
-    for c in range(cols):
-        b = cipher_bytes[idx]; idx += 1
-        # Use the corresponding context for column c (receiver must have contexts list)
-        ctx = contexts[c]                 # contexts[c] must be loaded already
-        ct = ts.bfv_tensor_from(ctx, b)  # reconstruct BFVTensor
-        row_cts.append(ct)
-    deltat.append(row_cts)
-
-#hdr = recv_all(client_socket, 8)
-#rows, cols = struct.unpack(">II", hdr)
-
-'''
-
-# 1. Read 8-byte length
-hdr = recv_all(client_socket, 8)
-L = int.from_bytes(hdr, "big")
-
-# 2. Read payload
-#compressed = recv_all(client_socket, L)
-
-# 3. Decompress + unpickle
-#blob = zlib.decompress(compressed)
-
-blob = recv_all(client_socket, L)
-payload = pickle.loads(blob)
-
-rows = payload["rows"]
-cols = payload["cols"]
-cipher_bytes = payload["ciphers"]
-
-# 4. Reconstruct matrix of BFV tensors
-deltat = []
-idx = 0
-for r in range(rows):
-    row = []
-    for c in range(cols):
-        ct_bytes = cipher_bytes[idx]
-        idx += 1
-        ct = ts.bfv_tensor_from(contexts[c], ct_bytes)
-        row.append(ct)
-    deltat.append(row)
-
-'''
-#it was last working
-deltat = []
-for r in range(m):
-    row_cts = []
-    for c, ctx in enumerate(contexts):
-        # read length
-        lbytes = recv_all(client_socket, 4)
-        clen = int.from_bytes(lbytes, "big")
-        # read ciphertext bytes
-        cbytes = recv_all(client_socket, clen)
-
-        #ctx = contexts[c]                              # already reconstructed TenSEAL contexts
-        ct = ts.bfv_tensor_from(ctx, cbytes)          # rebuild BFVTensor
-        row_cts.append(ct)
-    deltat.append(row_cts)
-'''
-
-DELTAT = []
-for j in range(m):  # for each row
-    row_residues = []
-    for i, mod in enumerate(moduli):  # for each modulus/context
-        # decrypt ciphertext under its context
-        decrypted_val = deltat[j][i].decrypt().tolist()
-        value = int(decrypted_val) % mod
-        row_residues.append(value)
-
-    # Combine residues via CRT if you used multiple moduli
-    combined, M = crt_reconstruct(row_residues, moduli)  # <-- you'll need your crt_combine() from before
-    # reconstructed = int(combined)
-
-    if combined > M // 2:
-        s_int = combined - M
+    if c[0] == 1:
+        SIG = SSD[0]
     else:
-        s_int = combined
-
-    reconstructed = int(s_int)
-    DELTAT.append(reconstructed)
-
-json_payload = recv_with_length(client_socket)
-SIG_load = json.loads(json_payload.decode('utf-8'))
-
-SIG =  group.deserialize(base64.b64decode(SIG_load["authenticator"]))
-
-#------------------------------------------
-
-# Verification --------------------------
-
-
-
-
-with open('auth-2.json', 'r') as file:
-        auth_file = json.load(file)
-
-g = group.deserialize(base64.b64decode(auth_file["generator"]))
-v = group.deserialize(base64.b64decode(auth_file["ppm"]))
+        SIG = -SSD[0]
+    
+    #SIG = SS[0] ** bh[0] # combined signature
+    for i in range(1,n):
+        #sigv =  (SS[i] ** c[i])
+        if c[i] == 1:
+            sigv = SSD[i]
+        else:
+            sigv = -SSD[i]
+        #sigv =  (SS[i] ** bh[i])
+        SIG = SIG*sigv
+    
+    #print("SIG", SIG)
+    SIG_serialized = base64.b64encode(group.serialize(SIG)).decode() # serialize g and convert to base64
+    #result =[deltat, SIG]
 
 
-
-with open('U.json', 'r') as file:
-        u_file = json.load(file)
-
-u_points = u_file["rand_points"]
-
-u = []
-for pt in u_points: # There are total m points
-    u.append( group.deserialize(base64.b64decode(pt)) )
-
-'''
-bh = [] #bh contains encoded (reformatted) challenges
-
-for i in range(n):
-    bh.append(PC[i]%p)
-    #print(c[i]%p)
-'''
+#    with open('response.json', 'w') as file:
+#        json.dump({
+#            "ciphertext": deltat,
+#            "authenticator": SIG_serialized
+#            }, file)
 
 
-'''DELTAT = [] # decryption of server's respponse based on T
-for i in range(m):
-    DELTAT.append(priv_key.decrypt(server_enc[i]))
-'''
+    '''
+    cipher_data = pickle.dumps([{
+        "ciphertext": ct.ciphertext(),   # integer
+        "exponent": ct.exponent          # integer
+    } for ct in deltat])
 
 
+    #pickle.dumps(cipher_data)
+    client_socket.sendall(len(cipher_data).to_bytes(4, 'big'))
+    client_socket.sendall(cipher_data)
+    '''
+
+    # deltat is list of m rows, each row is list of len(contexts) BFV tensors (sum_ct)
+    rows = len(deltat)
+    cols = len(deltat[0]) if rows>0 else 0
+
+    
+    # build a flat list of serialized tensors in row-major order
+    cipher_bytes = [ct.serialize() for row in deltat for ct in row]
+    
+    payload = {
+        "rows": rows,
+        "cols": cols,
+        "ciphers": cipher_bytes,   # list of bytes objects
+    }
+    
+    blob = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
+    send_all(client_socket, len(blob).to_bytes(4, "big"))
+    send_all(client_socket, blob)
+
+    payload_size = len(blob)
+    header_size = 8  # because you use 8-byte length prefix
+    total_sent = header_size + payload_size
+    
+    print(f"[BFV] Header: {header_size} bytes, Payload: {payload_size} bytes, Total sent: {total_sent} bytes")
+
+    #compressed = zlib.compress(blob, level=3)   # 1–3: good trade-off speed/size
+    #length_prefix = len(compressed).to_bytes(8, "big")
+    #send_all(client_socket, length_prefix + compressed)
+    
+
+    # send rows and cols as 4-byte big-endian ints
+    #header = struct.pack(">II", rows, cols)
+    #send_all(client_socket, header)
+
+    '''
+    # now stream each ciphertext: [4-byte length][ciphertext bytes]
+    for row in deltat:
+        for ct in row:
+            b = ct.serialize()              # bytes from TenSEAL
+            length = len(b)
+            send_all(client_socket, length.to_bytes(4, "big"))
+            send_all(client_socket, b)
+    '''
+    
+    '''
+    payload = {
+        "rows": rows,
+        "cols": cols,
+        "ciphers": [ct.serialize() for row in deltat for ct in row],
+    }
+    blob = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
+    compressed = zlib.compress(blob, level=3)  # low/medium level to avoid big CPU cost
+    
+    client_socket.sendall(len(compressed).to_bytes(8, "big"))
+    client_socket.sendall(compressed)
+    '''
+    '''payload_cipher = pickle.dumps({
+            "ciphertext": deltat,
+    })'''
+
+    payload_SIG = json.dumps({
+            "authenticator": SIG_serialized
+    })
+            
 
 
-#print(DELTA)
-# print(decode(DELTAT[0]), decode(DELTAT[1]))
-# exit(0)
-
-GH = []
-for i in range(n):
-    GH.append(group.hash(str("PID")+str(i), G1) )
+    client_socket.sendall(len(payload_SIG.encode('utf-8')).to_bytes(4, 'big'))
+    client_socket.sendall(payload_SIG.encode('utf-8'))
 
 
-#vr = GH[0] ** PC[0]
-'''
-vr = GH[0] ** bh[0]
-for i in range(1, n):
-    #vr = vr * ( GH[i] ** PC[i])
-    vr = vr * ( GH[i] ** bh[i])
-'''
+    #client_socket.sendall(payload_SIG.encode('utf-8'))
+    #client_socket.sendall(pickle.dumps(payload_cipher)) 
 
-#working with +1/-1 challenges
-if PC[0] == 1:
-    vr = GH[0]
-else:
-    vr = -GH[0]
+    #client_socket.sendall(payload_all) 
 
-#vr = GH[0] ** bh[0]
-for i in range(1, n):
-    #vr = vr * ( GH[i] ** PC[i])
-    if PC[i] == 1:
-        vrg = GH[i]
-    else:
-        vrg = -GH[i]
-    vr = vr * vrg
-    #vr = vr * ( GH[i] ** bh[i])
+    return(0)
+    #return("Response is written in response.json")
 
-'''
-#agm_a = u[0]**DELTA[0]
-agm_a = u[0]**DELTAT[0]
-for i in range(1, m):
-    te = u[i]**DELTAT[i]
-    agm_a = agm_a*te
-vrf = vr*agm_a
-'''
-
-if DELTAT[0] >= 0:
-    #print(">=0 ", DELTAT[0])
-    agm_a = u[0]**DELTAT[0] 
-else:
-    deln = -u[0]
-    #print("< 0 ", DELTAT[0])
-    agm_a = deln**(abs(DELTAT[0]))
-
-for i in range(1, m):
-    if DELTAT[i] >= 0:
-        te = u[i]**DELTAT[i]
-    else:
-        teneg = -u[i]
-        te = teneg**(abs(DELTAT[i]))
-    agm_a = agm_a*te
-vrf = vr*agm_a
-
-rhs = pair(vrf, v) # right hand side value of the verification 
-lhs = pair(SIG, g) # left hand side value of the verification 
+# Set up the server
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
-# if (vrf**alpha != SIG):
-#     print("vrf, SIG mismatch")
-if (lhs != rhs ):
-    print("Linear authenticator mismatch")
-    #print(bh)
-    exit(0)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+host = '127.0.0.1'  # Localhost
+port = 12345  # Choose an open port
+
+server_socket.bind((host, port))
+server_socket.listen(1)
+print(f"Server is listening on {host}:{port}")
+
+# Accept a connection
+client_socket, client_address = server_socket.accept()
+print(f"Connection established with {client_address}")
+
+# Receive the challenge c from the client
+data = client_socket.recv(4096)
+c = pickle.loads(data)
+print(f"Received challenge: c = {c}")
 
 
-R_f = []
-for i in range(m):
-    #if DELTA[i] >= 0:
-    z = decode(DELTAT[i] % p)
-    if z >= 0:
-        #print(1)
-        R_f.append(1)
-    else:
-        #print(0)
-        R_f.append(0)
-#print(R_f)
-
-#print("puf", DELTA)
-if (AC_f != R_f):
-    print("server response and PUF response mismatch")
-    exit(0)
-print("verification successful")
+# Compute f(c)
+result = f(c)
 
 
+#print(f"Computed result: f(c) = {result}")
 
-# Receive the result f(c) from the server
-#result = client_socket.recv(1024).decode('utf-8')
+#with open('auth-2.json', 'r') as file:
+#    data = json.load(file)
 
-#resp = client_socket.recv(1073741824).decode('utf-8')
-
-#print(f"Received result: f(PC) = {result}")
-
-
-#payload = json.loads(resp)
-#reps1 = group.deserialize(base64.b64decode(resp["authenticator"]))
-
-#print(response)
-#resp1 = json.loads(resp.decode('utf-8'))
+# Send the result back to the client
+#client_socket.send(str(result).encode('utf-8'))
 
 
 
 
-# Close the connection
+# Close the connections
 client_socket.close()
-
+server_socket.close()
