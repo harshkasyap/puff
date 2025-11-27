@@ -1,8 +1,5 @@
 import socket
-
 import os
-
-
 import sys
 import phe
 import time
@@ -342,10 +339,6 @@ result = f(c)
 
 # Send the result back to the client
 #client_socket.send(str(result).encode('utf-8'))
-
-
-
-
 # Close the connections
 client_socket.close()
 server_socket.close()
