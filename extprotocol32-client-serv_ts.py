@@ -664,7 +664,7 @@ for j in range(m):
 
     enc_vecs = []
     for i, context in enumerate(contexts):
-        enc_vec = ts.bfv_tensor(context, ts.plain_tensor(row_residues[i]), True)
+        enc_vec = ts.bfv_tensor(context, ts.plain_tensor(row_residues[i]), False)
         writeInEncFile(enc_vec.serialize(), "out/enc_vec"+"_"+str(i)+"_"+str(j))
         enc_vecs.append(enc_vec)
 
@@ -799,7 +799,7 @@ for i, context in enumerate(contexts):
 '''    
 print("server compute")
 
-t1 = time.time()
+
 
 # m = 142 paper q = m, paper t = n
 #delta = [] # encrypted response
@@ -830,22 +830,16 @@ for j in range(m):
     deltat.append(delt)
 '''
 
-
-pc_enc_vecs = []
-for i, context in enumerate(contexts):
-    pc_enc_vec = ts.bfv_tensor(context, ts.plain_tensor(PC), True)
-    pc_enc_vecs.append(pc_enc_vec)
-
+t1 = time.time()
 for j in range(m):
     delt = []
     for i, context in enumerate(contexts):
-        ct = EMT[j][i] * pc_enc_vecs[i] #bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+        #ct = EMT[j][i] * PC#pc_enc_vecs[i] #bh_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
         #sum_ct = ct.sum()      # homomorphic sum across all slots
-        sum_ct = ct.sum_()      # homomorphic sum across all slots
-        delt.append(sum_ct)
+        EMT[j][i].mul_(PC)
+        EMT[j][i].sum_()      
+        delt.append(EMT[j][i])
     deltat.append(delt)
-
-print("time to multiply model and bh ", time.time() - t1)
 
 '''
 #SIG = SS[0] ** PC[0] # combined signature
