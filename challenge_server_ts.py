@@ -173,11 +173,12 @@ def f(c):
     for j in range(m):
         delt = []
         for i, context in enumerate(contexts):
-            ct = EMT[j][i] * pc_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
+            #ct = EMT[j][i] * pc_enc_vecs[i]       # elementwise multiplication (encrypted × plaintext)
             #sum_ct = ct.sum()      # homomorphic sum across all slots
-            sum_ct = ct.sum_()      # homomorphic sum across all slots
+            #sum_ct = ct.sum_()      # homomorphic sum across all slots
             #writeInEncFile(sum_ct.serialize(), "out/sum_ct"+"_"+str(i)+"_"+str(j))
-            delt.append(sum_ct)
+            #delt.append(sum_ct)
+            delt.append(EMT[j][i].mul_(c).sum_())
         deltat.append(delt)
 
     print("time to multiply model and PC ", time.time() - t1)
@@ -245,7 +246,7 @@ def f(c):
     }
     
     blob = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
-    send_all(client_socket, len(blob).to_bytes(8, "big"))
+    send_all(client_socket, len(blob).to_bytes(4, "big"))
     send_all(client_socket, blob)
 
     payload_size = len(blob)
@@ -348,4 +349,3 @@ result = f(c)
 # Close the connections
 client_socket.close()
 server_socket.close()
-
